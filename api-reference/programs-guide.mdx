@@ -1,0 +1,318 @@
+---
+title: 'Programs & Clinical Verticals'
+description: 'Complete guide to OpenLoop clinical programs, bundle codes, and how to work with them'
+---
+
+## Overview
+
+OpenLoop organizes healthcare services into **Clinical Verticals** (bundles) containing related programs. Each program represents a specific condition or treatment area with its own questionnaire and associated products.
+
+<Info>
+Programs use **abbreviation IDs** (e.g., ADHD, MHL, ED) as unique identifiers across the API.
+</Info>
+
+## Clinical Verticals (Bundle Codes)
+
+<CardGroup cols={2}>
+<Card title="💊 Behavioral Health" icon="brain">
+  **Code:** `BH`
+  
+  Mental health and behavioral conditions including ADHD, anxiety, depression, and substance cessation programs.
+</Card>
+
+<Card title="✨ Hair & Dermatologic" icon="sparkles">
+  **Code:** `DERM`
+  
+  Dermatology and hair care programs including hair loss treatments, acne, anti-aging, and skin conditions.
+</Card>
+
+<Card title="💤 Sleep Health" icon="moon">
+  **Code:** `SLEEP`
+  
+  Sleep disorder treatments including sleep apnea, insomnia, and snoring solutions.
+</Card>
+
+<Card title="❤️ Sexual & Reproductive" icon="heart">
+  **Code:** `SH`
+  
+  Sexual health, reproductive wellness, TRT, HRT, fertility, and related services.
+</Card>
+
+<Card title="😷 Urgent & Acute Care" icon="hospital">
+  **Code:** `ACUTE`
+  
+  Immediate care for acute conditions like UTIs, pink eye, COVID, allergies, and infections.
+</Card>
+
+<Card title="📋 Chronic Condition Management" icon="clipboard-check">
+  **Code:** `CCRM`
+  
+  Chronic condition refills and monitoring for hypertension, diabetes, and ongoing care.
+</Card>
+
+<Card title="🍎 Weight Management" icon="scale-balanced">
+  **Code:** `MWL`
+  
+  Medical weight loss programs including GLP-1 medications and comprehensive support.
+</Card>
+
+<Card title="🌟 Wellness Programs" icon="leaf">
+  **Code:** `WELLNESS`
+  
+  Proactive wellness including NAD, longevity treatments, and preventive care.
+</Card>
+
+<Card title="🏥 Supportive Services" icon="stethoscope">
+  **Code:** `SUPPORT`
+  
+  Supporting medical services like physical therapy, radiology, and lab testing.
+</Card>
+
+<Card title="💊 OTC Products" icon="pills">
+  **Code:** `NOMED`
+  
+  Over-the-counter supplements, meals, and non-prescription products.
+</Card>
+</CardGroup>
+
+## Program Examples by Bundle
+
+<Tabs>
+<Tab title="Behavioral Health (BH)">
+  <AccordionGroup>
+  <Accordion title="ADHD">
+    **Program ID:** `ADHD`
+    
+    Comprehensive ADHD assessment and treatment with prescription medications and ongoing provider support.
+  </Accordion>
+  
+  <Accordion title="Anxiety (ANX)">
+    **Program ID:** `ANX`
+    
+    Anxiety disorder treatment with medication management and therapeutic support.
+  </Accordion>
+  
+  <Accordion title="Depression (DEPRES)">
+    **Program ID:** `DEPRES`
+    
+    Depression treatment including antidepressant medications and mental health counseling.
+  </Accordion>
+  
+  <Accordion title="Smoking Cessation">
+    **Program ID:** `SMOKINGCES`
+    
+    Smoking cessation program with medications and behavioral support.
+  </Accordion>
+  </AccordionGroup>
+</Tab>
+
+<Tab title="Dermatologic (DERM)">
+  <AccordionGroup>
+  <Accordion title="Men's Hair Loss (MHL)">
+    **Program ID:** `MHL`  
+    **Gender:** Male only
+    
+    Male pattern baldness treatment with finasteride, minoxidil, and other therapies.
+  </Accordion>
+  
+  <Accordion title="Women's Hair Loss (WHL)">
+    **Program ID:** `WHL`  
+    **Gender:** Female only
+    
+    Female hair loss treatment with specialized medications and supplements.
+  </Accordion>
+  
+  <Accordion title="Acne">
+    **Program ID:** `ACNE`
+    
+    Acne treatment with prescription topicals, oral medications, and skincare protocols.
+  </Accordion>
+  
+  <Accordion title="Anti-aging">
+    **Program ID:** `ANTIAGE`
+    
+    Anti-aging skincare with tretinoin, retinoids, and comprehensive skin health programs.
+  </Accordion>
+  </AccordionGroup>
+</Tab>
+
+<Tab title="Sexual Health (SH)">
+  <AccordionGroup>
+  <Accordion title="Erectile Dysfunction (ED)">
+    **Program ID:** `ED`  
+    **Gender:** Male only
+    
+    ED treatment with sildenafil, tadalafil, and other prescription options.
+  </Accordion>
+  
+  <Accordion title="Testosterone Replacement (MTRT)">
+    **Program ID:** `MTRT`  
+    **Gender:** Male only
+    
+    Men's testosterone replacement therapy with monitoring and ongoing care.
+  </Accordion>
+  
+  <Accordion title="Hormone Replacement (WHRT)">
+    **Program ID:** `WHRT`  
+    **Gender:** Female only
+    
+    Women's hormone replacement therapy for menopause and hormonal balance.
+  </Accordion>
+  
+  <Accordion title="Fertility">
+    **Program ID:** `WFERTILITY`  
+    **Gender:** Female only
+    
+    Women's fertility support and treatment programs.
+  </Accordion>
+  </AccordionGroup>
+</Tab>
+
+<Tab title="Weight Management (MWL)">
+  <AccordionGroup>
+  <Accordion title="Macro Dosing GLP">
+    **Program ID:** `MWL`
+    
+    Medical weight loss with GLP-1 medications (semaglutide, tirzepatide) at therapeutic doses for significant weight loss.
+  </Accordion>
+  </AccordionGroup>
+</Tab>
+
+<Tab title="Wellness (WELLNESS)">
+  <AccordionGroup>
+  <Accordion title="Cellular Optimization">
+    **Program ID:** `CELLULAR`
+    
+    Includes NAD, Sermorelin, B12, Methylene Blue, Glutathione, L-carnitine, and Lipo-C for cellular health.
+  </Accordion>
+  
+  <Accordion title="Longevity">
+    **Program ID:** `LONGEVITY`
+    
+    Longevity medications including Metformin and Rapamycin for healthspan extension.
+  </Accordion>
+  
+  <Accordion title="Micro Dosing GLP">
+    **Program ID:** `MICROGLP`
+    
+    Low-dose GLP-1 for metabolic health and wellness benefits.
+  </Accordion>
+  </AccordionGroup>
+</Tab>
+</Tabs>
+
+## Working with Programs
+
+### Listing Programs
+
+<CodeGroup>
+```bash Get All Programs
+curl -H "x-api-key: YOUR_API_KEY" \
+     https://api-staging.openloophealth.com/programs
+```
+
+```bash Filter by Bundle
+curl -H "x-api-key: YOUR_API_KEY" \
+     "https://api-staging.openloophealth.com/programs?bundle_code=BH"
+```
+
+```bash Filter by Gender
+curl -H "x-api-key: YOUR_API_KEY" \
+     "https://api-staging.openloophealth.com/programs?bundle_code=SH&gender=M"
+```
+</CodeGroup>
+
+### Getting Program Details
+
+```bash
+curl -H "x-api-key: YOUR_API_KEY" \
+     https://api-staging.openloophealth.com/programs/ADHD
+```
+
+### Program Workflow
+
+<Steps>
+<Step title="Explore Programs">
+  Client discovers available programs by bundle or gender filters.
+  
+  ```bash
+  GET /programs?bundle_code=DERM
+  ```
+</Step>
+
+<Step title="Get Questionnaire">
+  Retrieve the program-specific questionnaire for patient assessment.
+  
+  ```bash
+  GET /programs/MHL/questionnaires
+  ```
+</Step>
+
+<Step title="View Products">
+  See available products (pricing tiers, frequencies) for the program.
+  
+  ```bash
+  GET /programs/MHL/products
+  ```
+</Step>
+
+<Step title="Create Order">
+  Patient completes questionnaire and selects a product to create an order.
+  
+  ```bash
+  POST /orders
+  ```
+</Step>
+</Steps>
+
+## Program Response Schema
+
+```json
+{
+  "id": "ADHD",
+  "name": "ADHD",
+  "bundle_code": "BH",
+  "bundle_name": "Behavioral Health",
+  "offering_name": "ADHD",
+  "age_range": null,
+  "gender": null
+}
+```
+
+<ResponseField name="id" type="string" required>
+  Program abbreviation ID used throughout the API
+</ResponseField>
+
+<ResponseField name="bundle_code" type="string" required>
+  Clinical vertical code (BH, DERM, SLEEP, etc.)
+</ResponseField>
+
+<ResponseField name="gender" type="string">
+  Gender restriction: `M` (Male), `F` (Female), `ALL`, or `null` (no restriction)
+</ResponseField>
+
+## Best Practices
+
+<Tip>
+Cache the programs list client-side as it changes infrequently. Refresh daily or on app updates.
+</Tip>
+
+<Warning>
+Always check the `gender` field before displaying programs to users to avoid showing gender-specific programs to the wrong audience.
+</Warning>
+
+<Note>
+Programs with `active: false` should not be displayed to end users but may appear in historical data.
+</Note>
+
+## Related Endpoints
+
+<CardGroup cols={2}>
+  <Card title="List Products" icon="tag" href="/api-reference/products">
+    Get products filtered by program ID
+  </Card>
+  <Card title="Create Order" icon="cart-shopping" href="/api-reference/orders">
+    Create an order for a program product
+  </Card>
+</CardGroup>
+

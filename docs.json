@@ -8,80 +8,36 @@
     "dark": "#e3235f"
   },
   "favicon": "/favicon.ico",
+  "api": {
+    "playground": {
+      "mode": "simple"
+    }
+  },
   "navigation": {
     "tabs": [
-        {
-          "tab": "Getting Started",
-          "pages": [
-            "index",
-            "quickstart",
-            "best-practices"
-          ]
-        },
+      {
+        "tab": "Getting Started",
+        "pages": [
+          "index",
+          "quickstart",
+          "best-practices"
+        ]
+      },
       {
         "tab": "API Reference",
+        "openapi": "api-reference/openapi.json",
         "groups": [
           {
-            "group": "Overview",
+            "group": "Getting Started",
             "pages": [
               "api-reference/introduction",
               "api-reference/data-standards"
             ]
           },
           {
-            "group": "Patients",
+            "group": "Guides",
             "pages": [
-              "api-reference/endpoint/patients/list-patients",
-              "api-reference/endpoint/patients/create-patient",
-              "api-reference/endpoint/patients/get-patient",
-              "api-reference/endpoint/patients/update-patient",
-              "api-reference/endpoint/patients/delete-patient"
-            ]
-          },
-          {
-            "group": "Programs",
-            "pages": [
-              "api-reference/endpoint/programs/list-programs"
-            ]
-          },
-          {
-            "group": "Protocol Enrollments",
-            "pages": [
-              "api-reference/endpoint/enrollments/list-patient-enrollments",
-              "api-reference/endpoint/enrollments/create-patient-protocol-enrollment",
-              "api-reference/endpoint/enrollments/reactivate-patient-enrollment"
-            ]
-          },
-          {
-            "group": "Protocols",
-            "pages": [
-              "api-reference/endpoint/protocols/list-protocols",
-              "api-reference/endpoint/protocols/create-protocol",
-              "api-reference/endpoint/protocols/get-protocol",
-              "api-reference/endpoint/protocols/update-protocol",
-              "api-reference/endpoint/protocols/delete-protocol",
-              "api-reference/endpoint/protocols/get-protocols-by-program"
-            ]
-          },
-          {
-            "group": "Admin",
-            "pages": [
-              "api-reference/endpoint/admin/reset-database",
-              "api-reference/endpoint/admin/seed-database"
-            ]
-          },
-          {
-            "group": "System",
-            "pages": [
-              "api-reference/endpoint/system/api-info",
-              "api-reference/endpoint/system/health"
-            ]
-          },
-          {
-            "group": "Development",
-            "pages": [
-              "api-reference/endpoint/development/seed-patients",
-              "api-reference/endpoint/development/reset-patients"
+              "api-reference/programs-guide"
             ]
           }
         ]

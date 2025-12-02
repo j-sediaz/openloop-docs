@@ -13,11 +13,11 @@ You've got the basics down. Now let's make your integration bulletproof with pro
 
 <Tabs>
   <Tab title="Production" icon="globe">
-    **Base URL**: `https://partners-api-sigma.vercel.app`  
+    **Base URL**: `https://api-staging.openloophealth.com`  
     Use this for live integrations with real patient data
   </Tab>
   <Tab title="Staging" icon="flask">
-    **Base URL**: `https://staging-partners-api-sigma.vercel.app`  
+    **Base URL**: `https://staging-api-staging.openloophealth.com`  
     Use this for testing and development with safe test data
   </Tab>
 </Tabs>
@@ -29,7 +29,7 @@ Choose the authentication method that best fits your security requirements:
 <CodeGroup>
 ```javascript JavaScript
 // API Key Authentication (Recommended for server-to-server)
-const response = await fetch('https://partners-api-sigma.vercel.app/patients', {
+const response = await fetch('https://api-staging.openloophealth.com/patients', {
   method: 'GET',
   headers: {
     'x-api-key': 'your-api-key-here',
@@ -40,7 +40,7 @@ const response = await fetch('https://partners-api-sigma.vercel.app/patients', {
 const data = await response.json();
 
 // Bearer Token Authentication (For OAuth2 flows)
-const response = await fetch('https://partners-api-sigma.vercel.app/patients', {
+const response = await fetch('https://api-staging.openloophealth.com/patients', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer your-bearer-token-here',
@@ -56,7 +56,7 @@ import requests
 
 # API Key Authentication (Recommended for server-to-server)
 response = requests.get(
-    'https://partners-api-sigma.vercel.app/patients',
+    'https://api-staging.openloophealth.com/patients',
     headers={
         'x-api-key': 'your-api-key-here',
         'Content-Type': 'application/json'
@@ -67,7 +67,7 @@ data = response.json()
 
 # Bearer Token Authentication (For OAuth2 flows)
 response = requests.get(
-    'https://partners-api-sigma.vercel.app/patients',
+    'https://api-staging.openloophealth.com/patients',
     headers={
         'Authorization': 'Bearer your-bearer-token-here',
         'Content-Type': 'application/json'
@@ -81,12 +81,12 @@ data = response.json()
 # API Key Authentication
 curl -H "x-api-key: your-api-key-here" \
      -H "Content-Type: application/json" \
-     https://partners-api-sigma.vercel.app/patients
+     https://api-staging.openloophealth.com/patients
 
 # Bearer Token Authentication
 curl -H "Authorization: Bearer your-bearer-token-here" \
      -H "Content-Type: application/json" \
-     https://partners-api-sigma.vercel.app/patients
+     https://api-staging.openloophealth.com/patients
 ```
 </CodeGroup>
 
@@ -142,7 +142,7 @@ class RateLimiter {
 
 // Usage example
 const limiter = new RateLimiter(100);
-const response = await limiter.makeRequest('https://partners-api-sigma.vercel.app/patients');
+const response = await limiter.makeRequest('https://api-staging.openloophealth.com/patients');
 ```
 
 ```python Python
@@ -185,7 +185,7 @@ class RateLimiter:
 
 # Usage example
 limiter = RateLimiter(100)
-data = await limiter.make_request('https://partners-api-sigma.vercel.app/patients')
+data = await limiter.make_request('https://api-staging.openloophealth.com/patients')
 ```
 </CodeGroup>
 
@@ -576,11 +576,11 @@ Use our development tools to test with realistic data:
 
 ```bash
 # Seed test patients
-curl -X POST "https://partners-api-sigma.vercel.app/patients/seed?count=5" \
+curl -X POST "https://api-staging.openloophealth.com/patients/seed?count=5" \
   -H "x-api-key: YOUR_API_KEY"
 
 # Reset data after testing
-curl -X POST "https://partners-api-sigma.vercel.app/patients/reset" \
+curl -X POST "https://api-staging.openloophealth.com/patients/reset" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 

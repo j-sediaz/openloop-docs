@@ -1,69 +1,147 @@
 ---
 title: 'API Overview'
-description: 'Everything you need to know about the OpenLoop Partners API'
+description: 'Complete guide to the OpenLoop Partners API endpoints, capabilities, and integration patterns'
 ---
 
-This API lets you integrate your healthcare platform with OpenLoop's clinical services. Think of it as your bridge to offer specialized medical programs to your patients.
+## Introduction
 
-## What You Can Do
+The OpenLoop Partners API enables healthcare platforms to integrate with our clinical services network. This RESTful API provides programmatic access to patient management, program enrollment, and care coordination across 35+ medical specialties.
+
+## Core Capabilities
 
 <CardGroup cols={2}>
-  <Card title="Manage Patients" icon="users">
-    Create and update patient records with all the info you need
+  <Card title="Patient Management" icon="users" href="/api-reference/patients">
+    Create, retrieve, update, and manage patient records with comprehensive demographic and contact information
   </Card>
-  <Card title="Browse Programs" icon="list">
-    See what medical programs are available (35+ specialties!)
-  </Card>
-  <Card title="Create Protocols" icon="cog">
-    Define how patients enroll in healthcare programs
-  </Card>
-  <Card title="Enroll Patients" icon="user-plus">
-    Get your patients signed up for the care they need
-  </Card>
-  <Card title="Track Everything" icon="chart-line">
-    Monitor enrollments and patient progress
+  <Card title="Health Check" icon="heart-pulse" href="/api-reference/system">
+    Monitor API availability and service health status for reliable integrations
   </Card>
 </CardGroup>
 
-## Quick Start
+## Integration Workflow
 
-Ready to dive in? Here's the typical flow:
+Follow this recommended workflow when integrating with the Partners API:
 
-1. **Check the API** - Make sure everything's working
-2. **Create a patient** - Add them to your system
-3. **Browse programs** - See what's available
-4. **Create protocols** - Define enrollment workflows (standard or custom)
-5. **Enroll in protocols** - Get patients signed up for care through protocols
+<Steps>
+<Step title="Verify API Connection">
+  Test your credentials and confirm connectivity using the health check endpoint.
+  
+  <Check>
+  You should receive a 200 status code with service version information.
+  </Check>
+</Step>
 
-**Protocol-First Architecture:** All enrollments go through Protocols. When a patient enrolls in a protocol, the system automatically creates the necessary program enrollments behind the scenes.
+<Step title="Create Patient Records">
+  Submit patient demographic and contact information to create new records in the system.
+  
+  <Tip>
+  Ensure all required fields are properly formatted according to our [Data Standards](/api-reference/data-standards).
+  </Tip>
+</Step>
 
+<Step title="Manage Patient Data">
+  Retrieve, update, or remove patient records as needed using the patient ID from creation.
+  
+  <Warning>
+  Patient deletion is permanent and cannot be undone. Use with caution.
+  </Warning>
+</Step>
+</Steps>
 
 ## Data Standards
 
-Our API follows strict formatting standards to ensure data consistency and validation. See our comprehensive [Data Standards](/api-reference/data-standards) guide for detailed formatting rules, validation patterns, and examples for all field types.
+The API enforces strict data formatting and validation rules to ensure consistency and reliability. Review our comprehensive [Data Standards](/api-reference/data-standards) guide for:
+
+- Field format requirements and validation patterns
+- Date, phone, and email formatting rules  
+- Address and location data structures
+- Complete examples for all field types
 
 ## Authentication
 
-Choose what works best for you:
+The Partners API supports two authentication methods. Include your credentials in every API request.
 
-<CodeGroup>
-```bash API Key
-curl -H "x-api-key: your-api-key" \
-  https://partners-api-sigma.vercel.app/patients
+<Tabs>
+<Tab title="API Key">
+  **Recommended for most integrations**
+  
+  Include your API key in the `x-api-key` header:
+
+  ```bash
+  curl -H "x-api-key: YOUR_API_KEY" \
+       https://api-staging.openloophealth.com/patients
+  ```
+
+  <Info>
+  API keys provide simple, secure server-to-server authentication without token management complexity.
+  </Info>
+</Tab>
+
+<Tab title="Bearer Token">
+  **For OAuth2 flows**
+  
+  Include your bearer token in the `Authorization` header:
+
+  ```bash
+  curl -H "Authorization: Bearer YOUR_TOKEN" \
+       https://api-staging.openloophealth.com/patients
+  ```
+
+  <Note>
+  Bearer tokens enable advanced authentication patterns with token rotation and expiration.
+  </Note>
+</Tab>
+</Tabs>
+
+<Warning>
+Store API credentials securely in environment variables. Never commit credentials to version control or expose them in client-side code.
+</Warning>
+
+## Response Format
+
+All API responses follow a consistent JSON structure:
+
+<ResponseExample>
+```json Success Response
+{
+  "message": "Operation completed successfully",
+  "data": {
+    "patient": {
+      "id": "pat_1a2b3c4d5e6f",
+      "email": "john.doe@example.com"
+    }
+  }
+}
 ```
 
-```bash Bearer Token
-curl -H "Authorization: Bearer your-token" \
-  https://partners-api-sigma.vercel.app/patients
+```json Error Response
+{
+  "error": "ValidationError",
+  "message": "Invalid input data",
+  "details": [
+    {
+      "field": "email",
+      "issue": "Invalid email format"
+    }
+  ]
+}
 ```
-</CodeGroup>
+</ResponseExample>
 
 ## Need Help?
 
-- **Quick Start Guide** - Get up and running in minutes
-- **Development Guide** - Best practices and examples
-- **Contact Support** - We're here to help!
+<CardGroup cols={3}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get up and running in under 10 minutes
+  </Card>
+  <Card title="Best Practices" icon="star" href="/best-practices">
+    Error handling and optimization techniques
+  </Card>
+  <Card title="Contact Support" icon="envelope" href="https://openloophealth.com/contact">
+    Reach our technical partnership team
+  </Card>
+</CardGroup>
 
-<Note>
-All our providers are licensed across all 50 states, so your patients can get care no matter where they are.
-</Note>
+<Info>
+All OpenLoop providers are licensed across all 50 states, enabling nationwide patient care delivery.
+</Info>

@@ -2,16 +2,16 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partners API",
-    "description": "Mock Patients API for testing and development. Provides comprehensive patient management endpoints with authentication and validation.",
+    "description": "Partners API v1 - Patient management endpoints. This version focuses exclusively on patient operations.",
     "license": {
       "name": "MIT"
     },
-    "version": "1.1.0"
+    "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "https://partners-api-sigma.vercel.app",
-      "description": "Production server"
+      "url": "https://api-staging.openloophealth.com",
+      "description": "Staging server"
     }
   ],
   "security": [
@@ -25,70 +25,34 @@
   "paths": {
     "/health": {
       "get": {
+        "summary": "Health Check",
         "description": "Health check endpoint",
         "tags": ["System"],
         "responses": {
           "200": {
-            "description": "Service is healthy",
+            "description": "Service health information",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "ok"
-                    },
-                    "ts": {
-                      "type": "integer",
-                      "description": "Unix timestamp"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/": {
-      "get": {
-        "description": "Get API information and available endpoints",
-        "tags": ["System"],
-        "responses": {
-          "200": {
-            "description": "API information",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
+                  "required": ["name", "version_date"],
                   "properties": {
                     "name": {
-                      "type": "string",
-                      "example": "Partners API"
-                    },
-                    "version": {
-                      "type": "string",
-                      "example": "1.1.0"
-                    },
-                    "description": {
                       "type": "string"
                     },
-                    "status": {
+                    "version_date": {
                       "type": "string",
-                      "example": "active"
-                    },
-                    "timestamp": {
-                      "type": "integer"
-                    },
-                    "endpoints": {
-                      "type": "object"
-                    },
-                    "authentication": {
-                      "type": "object"
-                    },
-                    "documentation": {
-                      "type": "object"
+                      "format": "date-time",
+                      "description": "Version date in ISO 8601 format"
+                    }
+                  }
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Health check response",
+                    "value": {
+                      "name": "partners-api",
+                      "version_date": "2025-11-21T16:51:50.139Z"
                     }
                   }
                 }
@@ -100,6 +64,7 @@
     },
     "/patients": {
       "get": {
+        "summary": "List Patients",
         "description": "List all patients with optional filtering and pagination",
         "tags": ["Patients"],
         "parameters": [
@@ -136,19 +101,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "total": {
-                      "type": "integer",
-                      "description": "Total number of patients matching the query"
-                    },
-                    "items": {
-                  "type": "array",
-                  "items": {
-                        "$ref": "#/components/schemas/Patient"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/PatientListResponse"
                 }
               }
             }
@@ -200,6 +153,7 @@
         }
       },
       "post": {
+        "summary": "Create Patient",
         "description": "Create a new patient",
         "tags": ["Patients"],
         "requestBody": {
@@ -219,7 +173,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Patient"
+                  "$ref": "#/components/schemas/PatientResponse"
                 }
               }
             }
@@ -298,6 +252,7 @@
     },
     "/patients/{id}": {
       "get": {
+        "summary": "Get Patient",
         "description": "Get a specific patient by ID",
         "tags": ["Patients"],
         "parameters": [
@@ -317,7 +272,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Patient"
+                  "$ref": "#/components/schemas/PatientResponse"
                 }
               }
             }
@@ -388,6 +343,7 @@
         }
       },
       "put": {
+        "summary": "Update Patient",
         "description": "Update a patient",
         "tags": ["Patients"],
         "parameters": [
@@ -418,7 +374,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Patient"
+                  "$ref": "#/components/schemas/PatientResponse"
                 }
               }
             }
@@ -499,6 +455,7 @@
         }
       },
       "delete": {
+        "summary": "Delete Patient",
         "description": "Delete a patient",
         "tags": ["Patients"],
         "parameters": [
@@ -525,34 +482,66 @@
         }
       }
     },
-    "/patients/seed": {
-      "post": {
-        "description": "Seed random patients for testing and development",
-        "tags": ["Patients"],
+    "/programs": {
+      "get": {
+        "summary": "List Programs",
+        "description": "Get all available clinical vertical programs (BH, DERM, SLEEP, etc.)",
+        "tags": ["Programs"],
         "parameters": [
           {
-            "name": "count",
+            "name": "bundle_code",
             "in": "query",
-            "description": "Number of patients to create (1-500, default: 10)",
+            "description": "Filter by clinical vertical bundle code",
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 500,
-              "default": 10
+              "type": "string",
+              "enum": ["BH", "DERM", "SLEEP", "SH", "ACUTE", "CCRM", "MWL", "WELLNESS", "SUPPORT", "NOMED"]
+            }
+          },
+          {
+            "name": "gender",
+            "in": "query",
+            "description": "Filter by gender (M, F, ALL)",
+            "schema": {
+              "type": "string",
+              "enum": ["M", "F", "ALL"]
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Patients seeded successfully",
+            "description": "Programs retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "inserted": {
-                      "type": "integer",
-                      "description": "Number of patients created"
+                  "$ref": "#/components/schemas/ProgramListResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Programs list example",
+                    "value": {
+                      "message": "Programs retrieved successfully",
+                      "data": {
+                        "programs": [
+                          {
+                            "id": "ADHD",
+                            "name": "ADHD",
+                            "bundle_code": "BH",
+                            "bundle_name": "Behavioral Health",
+                            "offering_name": "ADHD",
+                            "age_range": null,
+                            "gender": null
+                          },
+                          {
+                            "id": "MHL",
+                            "name": "Men's hair loss",
+                            "bundle_code": "DERM",
+                            "bundle_name": "Hair & Dermatologic Health",
+                            "offering_name": "Men's hair loss",
+                            "age_range": null,
+                            "gender": "M"
+                          }
+                        ]
+                      }
                     }
                   }
                 }
@@ -565,47 +554,243 @@
         }
       }
     },
-    "/patients/reset": {
-      "post": {
-        "description": "Reset all patients data (development only)",
-        "tags": ["Patients"],
-        "responses": {
-          "200": {
-            "description": "Patients data reset successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "ok": {
-                      "type": "boolean",
-                      "description": "Reset operation status"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/programs": {
+    "/programs/{programId}": {
       "get": {
-        "description": "List all available programs",
+        "summary": "Get Program",
+        "description": "Retrieve details of a specific program by its abbreviation ID",
         "tags": ["Programs"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "programId",
+            "in": "path",
+            "description": "Program abbreviation (e.g., ADHD, MHL, ED)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "List of programs",
+            "description": "Program retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Program"
+                  "$ref": "#/components/schemas/ProgramResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Program example",
+                    "value": {
+                      "message": "Program retrieved successfully",
+                      "data": {
+                        "program": {
+                          "id": "ADHD",
+                          "name": "ADHD",
+                          "bundle_code": "BH",
+                          "bundle_name": "Behavioral Health",
+                          "offering_name": "ADHD",
+                          "age_range": null,
+                          "gender": null
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/programs/{programId}/questionnaires": {
+      "get": {
+        "summary": "Get Program Questionnaire",
+        "description": "Retrieve the questionnaire required for a specific program",
+        "tags": ["Programs"],
+        "parameters": [
+          {
+            "name": "programId",
+            "in": "path",
+            "description": "Program ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Questionnaire retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionnaireResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Questionnaire example",
+                    "value": {
+                      "message": "Questionnaire retrieved successfully",
+                      "data": {
+                        "questionnaire": {
+                          "id": "quest_1a2b3c4d",
+                          "program_id": "prog_123",
+                          "title": "Weight Loss Program Assessment",
+                          "questions": [
+                            {
+                              "id": "q1",
+                              "text": "What is your current weight?",
+                              "type": "number",
+                              "required": true
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/programs/{programId}/products": {
+      "get": {
+        "summary": "Get Program Products",
+        "description": "Get all products associated with a specific program",
+        "tags": ["Programs"],
+        "parameters": [
+          {
+            "name": "programId",
+            "in": "path",
+            "description": "Program abbreviation (e.g., ADHD, MHL, ED)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "List Products",
+        "description": "Get all available products with optional filtering by program, payment provider, or client",
+        "tags": ["Products"],
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "query",
+            "description": "Filter by program abbreviation (ADHD, MHL, ED, etc.)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "payment_provider",
+            "in": "query",
+            "description": "Filter by payment provider",
+            "schema": {
+              "type": "string",
+              "enum": ["stripe", "chargebee"]
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "Filter by active status",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results to return",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductListResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Products list example",
+                    "value": {
+                      "message": "Products retrieved successfully",
+                      "data": {
+                        "products": [
+                          {
+                            "product_id": "openloop_adhd_monthly_001",
+                            "payment_provider_product_id": "prod_StripeABC123XYZ",
+                            "payment_provider_price_id": "price_1234567890abcdef",
+                            "product_name": "ADHD Treatment - Monthly Subscription",
+                            "product_description": "Comprehensive ADHD treatment with medication and monthly provider consultations",
+                            "price": 299.00,
+                            "price_currency": "USD",
+                            "payment_provider": "stripe",
+                            "program_id": "ADHD",
+                            "billing_frequency": "monthly",
+                            "active": true
+                          }
+                        ],
+                        "pagination": {
+                          "total": 1,
+                          "limit": 50,
+                          "offset": 0,
+                          "has_more": false
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -617,20 +802,137 @@
         }
       }
     },
-    "/protocols": {
-      "get": {
-        "description": "List all available protocols",
-        "tags": ["Protocols"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
+    "/funnel-responses": {
+      "post": {
+        "summary": "Create Funnel Response",
+        "description": "Create a patient, questionnaire response, and invoices in one operation",
+        "tags": ["Funnel Responses"],
+        "requestBody": {
+          "description": "Funnel response data including patient info and questionnaire answers",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FunnelResponseInput"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
-          "200": {
-            "description": "List of protocols",
+          "201": {
+            "description": "Funnel response created successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Protocol"
+                  "$ref": "#/components/schemas/FunnelResponseOutput"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Funnel response created",
+                    "value": {
+                      "message": "Funnel response created successfully",
+                      "data": {
+                        "patient_id": "pat_1a2b3c4d",
+                        "questionnaire_response_id": "qr_xyz789",
+                        "invoice_ids": ["inv_001", "inv_002"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "List Orders",
+        "description": "Retrieve all orders with optional filtering",
+        "tags": ["Orders"],
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "query",
+            "description": "Filter by patient ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product_id",
+            "in": "query",
+            "description": "Filter by product ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by order status",
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "confirmed", "completed", "cancelled"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Orders retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderListResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Orders list",
+                    "value": {
+                      "message": "Orders retrieved successfully",
+                      "data": {
+                        "orders": [
+                          {
+                            "id": "ord_abc123",
+                            "patient_id": "pat_xyz789",
+                            "product_id": "prod_def456",
+                            "status": "confirmed",
+                            "total_amount": 29900,
+                            "created_at": "2024-12-02T10:30:00Z"
+                          }
+                        ],
+                        "pagination": {
+                          "total": 1,
+                          "limit": 50,
+                          "offset": 0,
+                          "has_more": false
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -642,71 +944,51 @@
         }
       },
       "post": {
-        "description": "Create a new protocol",
-        "tags": ["Protocols"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
+        "summary": "Create Order",
+        "description": "Create a new order based on patient, product, and questionnaire",
+        "tags": ["Orders"],
         "requestBody": {
-          "required": true,
+          "description": "Order data",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProtocolInput"
+                "$ref": "#/components/schemas/OrderInput"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "201": {
-            "description": "Protocol created successfully",
+            "description": "Order created successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Protocol"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequestError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/protocols/by-program/{programId}": {
-      "get": {
-        "description": "Get protocols associated with a specific program",
-        "tags": ["Protocols"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
-        "parameters": [
-          {
-            "name": "programId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "number"
-            },
-            "description": "Program ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of protocols for the program",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Protocol"
+                  "$ref": "#/components/schemas/OrderResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Order created",
+                    "value": {
+                      "message": "Order created successfully",
+                      "data": {
+                        "order": {
+                          "id": "ord_abc123",
+                          "patient_id": "pat_xyz789",
+                          "product_id": "prod_def456",
+                          "status": "pending",
+                          "total_amount": 29900,
+                          "created_at": "2024-12-02T10:30:00Z"
+                        }
+                      }
+                    }
                   }
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequestError"
+            "$ref": "#/components/responses/ValidationError"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -714,29 +996,29 @@
         }
       }
     },
-    "/protocols/{protocolId}": {
+    "/orders/{id}": {
       "get": {
-        "description": "Get a specific protocol by ID",
-        "tags": ["Protocols"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
+        "summary": "Get Order",
+        "description": "Retrieve a specific order by ID",
+        "tags": ["Orders"],
         "parameters": [
           {
-            "name": "protocolId",
+            "name": "id",
             "in": "path",
+            "description": "Order ID",
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "Protocol ID"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Protocol details",
+            "description": "Order retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Protocol"
+                  "$ref": "#/components/schemas/OrderResponse"
                 }
               }
             }
@@ -750,43 +1032,44 @@
         }
       },
       "put": {
-        "description": "Update a protocol",
-        "tags": ["Protocols"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
+        "summary": "Update Order",
+        "description": "Update an existing order",
+        "tags": ["Orders"],
         "parameters": [
           {
-            "name": "protocolId",
+            "name": "id",
             "in": "path",
+            "description": "Order ID",
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "Protocol ID"
+            }
           }
         ],
         "requestBody": {
-          "required": true,
+          "description": "Updated order data",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Protocol"
+                "$ref": "#/components/schemas/OrderUpdateInput"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
-            "description": "Protocol updated successfully",
+            "description": "Order updated successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Protocol"
+                  "$ref": "#/components/schemas/OrderResponse"
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequestError"
+            "$ref": "#/components/responses/ValidationError"
           },
           "404": {
             "$ref": "#/components/responses/NotFoundError"
@@ -797,306 +1080,26 @@
         }
       },
       "delete": {
-        "description": "Delete a protocol",
-        "tags": ["Protocols"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
+        "summary": "Delete Order",
+        "description": "Delete an order by ID",
+        "tags": ["Orders"],
         "parameters": [
           {
-            "name": "protocolId",
+            "name": "id",
             "in": "path",
+            "description": "Order ID",
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "Protocol ID"
+            }
           }
         ],
         "responses": {
           "204": {
-            "description": "Protocol deleted successfully"
+            "description": "Order deleted successfully"
           },
           "404": {
             "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/patients/{patientId}/enrollments/reactivate": {
-      "post": {
-        "description": "Reactivate an existing enrollment for a patient",
-        "tags": ["Enrollments"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
-        "parameters": [
-          {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Patient identifier"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EnrollmentInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Enrollment reactivated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "description": "Enrollment identifier"
-                    },
-                    "status": {
-                      "type": "string",
-                      "description": "Enrollment status"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequestError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationError"
-          }
-        }
-      }
-    },
-    "/patients/{patientId}/enrollments": {
-      "get": {
-        "description": "Get all protocol enrollments for a specific patient",
-        "tags": ["Enrollments"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
-        "parameters": [
-          {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Patient ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of protocol enrollments for the patient",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProtocolEnrollment"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          }
-        }
-      },
-      "post": {
-        "description": "Enroll a patient in a protocol",
-        "tags": ["Enrollments"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
-        "parameters": [
-          {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Patient ID"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProtocolEnrollmentInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Patient enrolled in protocol successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "protocol_enrollment_id": {
-                      "type": "string",
-                      "description": "Protocol enrollment identifier"
-                    },
-                    "protocol_id": {
-                      "type": "string",
-                      "description": "Protocol identifier"
-                    },
-                    "status": {
-                      "type": "string",
-                      "description": "Enrollment status",
-                      "example": "created"
-                    },
-                    "program_enrollments_count": {
-                      "type": "number",
-                      "description": "Number of individual program enrollments created"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequestError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "409": {
-            "description": "Patient already enrolled in this protocol",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/reset": {
-      "post": {
-        "description": "Reset the database to initial state",
-        "tags": ["Admin"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
-        "responses": {
-          "200": {
-            "description": "Database reset successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "ok": {
-                      "type": "boolean",
-                      "example": true
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/admin/seed": {
-      "post": {
-        "description": "Seed the database with sample data",
-        "tags": ["Admin"],
-        "security": [{"apiKeyAuth": []}, {"bearerAuth": []}],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "count": {
-                    "type": "number",
-                    "description": "Number of patients to create (default: 10)",
-                    "default": 10
-                  },
-                  "sample": {
-                    "type": "boolean",
-                    "description": "Whether to create sample data with protocols (default: true)",
-                    "default": true
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Data seeded successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "ok": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Sample data seeded successfully"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "protocols": {
-                          "type": "number",
-                          "description": "Number of protocols created"
-                        },
-                        "patients": {
-                          "type": "number",
-                          "description": "Number of patients created"
-                        },
-                        "enrollments": {
-                          "type": "number",
-                          "description": "Number of enrollments created"
-                        },
-                        "programs": {
-                          "type": "number",
-                          "description": "Number of programs available"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -1116,9 +1119,7 @@
           "last_name",
           "phone",
           "birth_date",
-          "gender",
-          "sex",
-          "locations"
+          "sex"
         ],
         "properties": {
           "id": {
@@ -1160,12 +1161,13 @@
           },
           "gender": {
             "type": "string",
+            "nullable": true,
             "enum": ["male", "female", "other"],
             "description": "Patient's gender identity"
           },
           "sex": {
             "type": "string",
-            "enum": ["male", "female", "other"],
+            "enum": ["male", "female", "other", "unknown"],
             "description": "Patient's biological sex"
           },
           "preferred_language": {
@@ -1175,7 +1177,7 @@
           },
           "locations": {
             "type": "array",
-            "minItems": 1,
+            "nullable": true,
             "items": {
               "$ref": "#/components/schemas/Location"
             },
@@ -1188,6 +1190,36 @@
             },
             "description": "Patient tags for categorization"
           }
+        },
+        "example": {
+          "id": "pat_1a2b3c4d5e6f",
+          "email": "john.doe@example.com",
+          "first_name": "John",
+          "middle_name": "Michael",
+          "last_name": "Doe",
+          "phone": "+1-555-0123",
+          "birth_date": "1990-05-15",
+          "gender": "male",
+          "sex": "male",
+          "preferred_language": "en",
+          "locations": [
+            {
+              "address_line_1": "123 Main Street",
+              "address_line_2": "Apt 4B",
+              "city": "New York",
+              "state": "NY",
+              "country": "US",
+              "zip_code": "10001",
+              "default": true,
+              "type": "home"
+            }
+          ],
+          "tags": [
+            {
+              "type": "employer",
+              "name": "TechCorp"
+            }
+          ]
         }
       },
       "PatientInput": {
@@ -1238,12 +1270,13 @@
           },
           "gender": {
             "type": "string",
+            "nullable": true,
             "enum": ["male", "female", "other"],
             "description": "Patient's gender identity"
           },
           "sex": {
             "type": "string",
-            "enum": ["male", "female", "other"],
+            "enum": ["male", "female", "other", "unknown"],
             "description": "Patient's biological sex"
           },
           "preferred_language": {
@@ -1266,6 +1299,35 @@
             },
             "description": "Patient tags for categorization"
           }
+        },
+        "example": {
+          "email": "john.doe@example.com",
+          "first_name": "John",
+          "middle_name": "Michael",
+          "last_name": "Doe",
+          "phone": "+1-555-0123",
+          "birth_date": "1990-05-15",
+          "gender": "male",
+          "sex": "male",
+          "preferred_language": "en",
+          "locations": [
+            {
+              "address_line_1": "123 Main Street",
+              "address_line_2": "Apt 4B",
+              "city": "New York",
+              "state": "NY",
+              "country": "US",
+              "zip_code": "10001",
+              "default": true,
+              "type": "home"
+            }
+          ],
+          "tags": [
+            {
+              "type": "employer",
+              "name": "TechCorp"
+            }
+          ]
         }
       },
       "Location": {
@@ -1317,9 +1379,19 @@
           },
           "type": {
             "type": "string",
-            "enum": ["shipping", "billing"],
+            "enum": ["home", "work"],
             "description": "Type of address"
           }
+        },
+        "example": {
+          "address_line_1": "123 Main Street",
+          "address_line_2": "Apt 4B",
+          "city": "New York",
+          "state": "NY",
+          "country": "US",
+          "zip_code": "10001",
+          "default": true,
+          "type": "home"
         }
       },
       "Tag": {
@@ -1339,84 +1411,11 @@
             "description": "Tag name",
             "minLength": 1
           }
+        },
+        "example": {
+          "type": "employer",
+          "name": "TechCorp"
         }
-      },
-      "Program": {
-        "type": "object",
-        "required": ["id", "name", "abbreviated_name"],
-        "properties": {
-          "id": {
-            "type": "number",
-            "description": "Program identifier"
-          },
-          "name": {
-            "type": "string",
-            "description": "Program full name"
-          },
-          "abbreviated_name": {
-            "type": "string",
-            "description": "Program abbreviated name"
-          }
-        },
-        "additionalProperties": false
-      },
-      "Enrollment": {
-        "type": "object",
-        "required": ["id", "status", "latest_payment_date"],
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Enrollment identifier"
-          },
-          "name": {
-            "type": "string",
-            "description": "Program name (required for active enrollments)"
-          },
-          "abbreviated_name": {
-            "type": "string",
-            "description": "Program abbreviated name (required for active enrollments)"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["active", "in_review", "disabled"],
-            "description": "Enrollment status"
-          },
-          "latest_payment_date": {
-            "type": "string",
-            "format": "date",
-            "description": "Latest payment date in YYYY-MM-dd format"
-          },
-          "start_date": {
-            "type": "string",
-            "format": "date",
-            "description": "Enrollment start date in yyyy-MM-dd format (required for active enrollments)"
-          },
-          "end_date": {
-            "type": "string",
-            "format": "date",
-            "description": "Enrollment end date in yyyy-MM-dd format"
-          }
-        },
-        "additionalProperties": false
-      },
-      "EnrollmentInput": {
-        "type": "object",
-        "required": ["program_id", "stripe_customer_id", "stripe_product_id"],
-        "properties": {
-          "program_id": {
-            "type": "number",
-            "description": "Program identifier to enroll in"
-          },
-          "stripe_customer_id": {
-            "type": "string",
-            "description": "Stripe customer ID"
-          },
-          "stripe_product_id": {
-            "type": "string",
-            "description": "Stripe product ID"
-          }
-        },
-        "additionalProperties": false
       },
       "Error": {
         "type": "object",
@@ -1469,156 +1468,664 @@
           }
         }
       },
-      "Protocol": {
+      "Pagination": {
         "type": "object",
-        "required": ["id", "name", "program_ids"],
+        "required": [
+          "total",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "Total number of items matching the query",
+            "example": 13
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of items returned per page",
+            "example": 10
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Number of items skipped",
+            "example": 0
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Whether there are more items available",
+            "example": true
+          }
+        }
+      },
+      "PatientListResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "data"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message",
+            "example": "Patients retrieved successfully"
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "patients",
+              "pagination"
+            ],
+            "properties": {
+              "patients": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Patient"
+                },
+                "description": "Array of patient objects"
+              },
+              "pagination": {
+                "$ref": "#/components/schemas/Pagination"
+              }
+            }
+          }
+        },
+        "example": {
+          "message": "Patients retrieved successfully",
+          "data": {
+            "patients": [
+              {
+                "id": "pat_1a2b3c4d5e6f",
+                "email": "john.doe@example.com",
+                "first_name": "John",
+                "middle_name": "Michael",
+                "last_name": "Doe",
+                "phone": "+1-555-0123",
+                "birth_date": "1990-05-15",
+                "gender": "male",
+                "sex": "male",
+                "preferred_language": "en",
+                "locations": [
+                  {
+                    "address_line_1": "123 Main Street",
+                    "address_line_2": "Apt 4B",
+                    "city": "New York",
+                    "state": "NY",
+                    "country": "US",
+                    "zip_code": "10001",
+                    "default": true,
+                    "type": "home"
+                  }
+                ],
+                "tags": [
+                  {
+                    "type": "employer",
+                    "name": "TechCorp"
+                  }
+                ]
+              }
+            ],
+            "pagination": {
+              "total": 1,
+              "limit": 50,
+              "offset": 0,
+              "has_more": false
+            }
+          }
+        }
+      },
+      "PatientResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "data"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message",
+            "example": "Patient created successfully"
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "patient"
+            ],
+            "properties": {
+              "patient": {
+                "$ref": "#/components/schemas/Patient"
+              }
+            }
+          }
+        },
+        "example": {
+          "message": "Patient created successfully",
+          "data": {
+            "patient": {
+              "id": "pat_1a2b3c4d5e6f",
+              "email": "john.doe@example.com",
+              "first_name": "John",
+              "middle_name": "Michael",
+              "last_name": "Doe",
+              "phone": "+1-555-0123",
+              "birth_date": "1990-05-15",
+              "gender": "male",
+              "sex": "male",
+              "preferred_language": "en",
+              "locations": [
+                {
+                  "address_line_1": "123 Main Street",
+                  "address_line_2": "Apt 4B",
+                  "city": "New York",
+                  "state": "NY",
+                  "country": "US",
+                  "zip_code": "10001",
+                  "default": true,
+                  "type": "home"
+                }
+              ],
+              "tags": [
+                {
+                  "type": "employer",
+                  "name": "TechCorp"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Program": {
+        "type": "object",
+        "required": ["id", "name", "bundle_code", "bundle_name", "offering_name"],
         "properties": {
           "id": {
             "type": "string",
-            "description": "Protocol identifier"
+            "description": "Program abbreviation ID (e.g., ADHD, MHL, ED). This is the unique identifier used across the API."
           },
           "name": {
             "type": "string",
-            "description": "Protocol name"
+            "description": "Program display name"
+          },
+          "bundle_code": {
+            "type": "string",
+            "enum": ["BH", "DERM", "SLEEP", "SH", "ACUTE", "CCRM", "MWL", "WELLNESS", "SUPPORT", "NOMED"],
+            "description": "Clinical vertical bundle code (e.g., BH for Behavioral Health)"
+          },
+          "bundle_name": {
+            "type": "string",
+            "description": "Full bundle name for display (e.g., 'Behavioral Health', 'Hair & Dermatologic Health')"
+          },
+          "offering_name": {
+            "type": "string",
+            "description": "Clinical vertical offering name for display"
+          },
+          "age_range": {
+            "type": "string",
+            "nullable": true,
+            "description": "Target age range if applicable (e.g., '18-65'). Null means no age restriction."
+          },
+          "gender": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["M", "F", "ALL", null],
+            "description": "Target gender restriction: M (Male only), F (Female only), ALL (any gender), null (no restriction)"
+          }
+        },
+        "example": {
+          "id": "ADHD",
+          "name": "ADHD",
+          "bundle_code": "BH",
+          "bundle_name": "Behavioral Health",
+          "offering_name": "ADHD",
+          "age_range": null,
+          "gender": null
+        }
+      },
+      "ProgramListResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["programs"],
+            "properties": {
+              "programs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Program"
+                },
+                "description": "List of available programs"
+              }
+            }
+          }
+        }
+      },
+      "ProgramResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["program"],
+            "properties": {
+              "program": {
+                "$ref": "#/components/schemas/Program"
+              }
+            }
+          }
+        }
+      },
+      "Question": {
+        "type": "object",
+        "required": ["id", "text", "type", "required"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Question ID"
+          },
+          "text": {
+            "type": "string",
+            "description": "Question text"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["text", "number", "select", "multiselect", "date"],
+            "description": "Question type"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the question is required"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Available options for select/multiselect questions"
+          }
+        }
+      },
+      "Questionnaire": {
+        "type": "object",
+        "required": ["id", "program_id", "title", "questions"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Questionnaire ID"
+          },
+          "program_id": {
+            "type": "string",
+            "description": "Associated program ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Questionnaire title"
           },
           "description": {
             "type": "string",
-            "description": "Protocol description"
+            "description": "Questionnaire description"
           },
-          "program_ids": {
+          "questions": {
             "type": "array",
             "items": {
-              "type": "number"
+              "$ref": "#/components/schemas/Question"
             },
-            "description": "Array of program IDs associated with this protocol"
+            "description": "List of questions"
+          }
+        }
+      },
+      "QuestionnaireResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
           },
-          "intake_form_metadata": {
+          "data": {
             "type": "object",
-            "description": "Metadata for intake form configuration",
+            "required": ["questionnaire"],
             "properties": {
-              "form_id": {
-                "type": "string",
-                "description": "Intake form identifier"
+              "questionnaire": {
+                "$ref": "#/components/schemas/Questionnaire"
+              }
+            }
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": ["product_id", "product_name", "price", "price_currency", "payment_provider"],
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "description": "Internal OpenLoop product identifier (used for orders and tracking)"
+          },
+          "payment_provider_product_id": {
+            "type": "string",
+            "description": "Product ID in the payment provider system (e.g., Stripe product ID: prod_xxx, Chargebee plan ID: plan_xxx)"
+          },
+          "payment_provider_price_id": {
+            "type": "string",
+            "description": "Price ID in the payment provider system (e.g., Stripe price ID: price_xxx)"
+          },
+          "product_name": {
+            "type": "string",
+            "description": "Product display name"
+          },
+          "product_description": {
+            "type": "string",
+            "description": "Product description for display"
+          },
+          "price": {
+            "type": "number",
+            "description": "Price amount (decimal format, e.g., 299.00)"
+          },
+          "price_currency": {
+            "type": "string",
+            "description": "Currency code (ISO 4217)",
+            "default": "USD"
+          },
+          "payment_provider": {
+            "type": "string",
+            "enum": ["stripe", "chargebee"],
+            "description": "Payment provider system used for billing"
+          },
+          "program_id": {
+            "type": "string",
+            "description": "Associated program abbreviation (e.g., ADHD, MHL, ED)"
+          },
+          "billing_frequency": {
+            "type": "string",
+            "enum": ["one-time", "monthly", "quarterly", "annually"],
+            "description": "Billing frequency for recurring charges"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Whether the product is currently active and available for purchase",
+            "default": true
+          }
+        },
+        "example": {
+          "product_id": "openloop_adhd_monthly_001",
+          "payment_provider_product_id": "prod_StripeABC123XYZ",
+          "payment_provider_price_id": "price_1234567890abcdef",
+          "product_name": "ADHD Treatment - Monthly Subscription",
+          "product_description": "Comprehensive ADHD treatment with medication and monthly provider consultations",
+          "price": 299.00,
+          "price_currency": "USD",
+          "payment_provider": "stripe",
+          "program_id": "ADHD",
+          "billing_frequency": "monthly",
+          "active": true
+        }
+      },
+      "ProductListResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["products", "pagination"],
+            "properties": {
+              "products": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Product"
+                }
               },
-              "required_fields": {
+              "pagination": {
+                "$ref": "#/components/schemas/Pagination"
+              }
+            }
+          }
+        }
+      },
+      "FunnelResponseInput": {
+        "type": "object",
+        "required": ["patient", "questionnaire_response", "product_id"],
+        "properties": {
+          "patient": {
+            "$ref": "#/components/schemas/PatientInput"
+          },
+          "questionnaire_response": {
+            "type": "object",
+            "required": ["questionnaire_id", "answers"],
+            "properties": {
+              "questionnaire_id": {
+                "type": "string",
+                "description": "Questionnaire ID"
+              },
+              "answers": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Questionnaire answers (question_id: answer)"
+              }
+            }
+          },
+          "product_id": {
+            "type": "string",
+            "description": "Product ID for the order"
+          },
+          "payment_method_id": {
+            "type": "string",
+            "description": "Payment method ID (e.g., Stripe payment method)"
+          }
+        },
+        "example": {
+          "patient": {
+            "email": "john.doe@example.com",
+            "first_name": "John",
+            "last_name": "Doe",
+            "phone": "+1-555-0123",
+            "birth_date": "1990-05-15",
+            "gender": "male",
+            "sex": "male",
+            "locations": [{
+              "address_line_1": "123 Main Street",
+              "city": "New York",
+              "state": "NY",
+              "country": "US",
+              "zip_code": "10001",
+              "default": true,
+              "type": "home"
+            }]
+          },
+          "questionnaire_response": {
+            "questionnaire_id": "quest_123",
+            "answers": {
+              "q1": "180",
+              "q2": "Yes"
+            }
+          },
+          "product_id": "prod_abc123",
+          "payment_method_id": "pm_1234567890"
+        }
+      },
+      "FunnelResponseOutput": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["patient_id", "questionnaire_response_id"],
+            "properties": {
+              "patient_id": {
+                "type": "string",
+                "description": "Created patient ID"
+              },
+              "questionnaire_response_id": {
+                "type": "string",
+                "description": "Created questionnaire response ID"
+              },
+              "invoice_ids": {
                 "type": "array",
                 "items": {
                   "type": "string"
                 },
-                "description": "List of required form fields"
+                "description": "Created invoice IDs"
               },
-              "custom_fields": {
-                "type": "object",
-                "description": "Custom form field configurations"
+              "order_id": {
+                "type": "string",
+                "description": "Created order ID"
               }
             }
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": ["id", "patient_id", "product_id", "status", "total_amount"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Order ID"
           },
-          "is_standard": {
-            "type": "boolean",
-            "description": "Whether this is a standard protocol (1:1 with program) or custom (N:1)",
-            "default": false
+          "patient_id": {
+            "type": "string",
+            "description": "Patient ID"
+          },
+          "product_id": {
+            "type": "string",
+            "description": "Product ID"
+          },
+          "questionnaire_response_id": {
+            "type": "string",
+            "description": "Associated questionnaire response ID"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "confirmed", "completed", "cancelled"],
+            "description": "Order status"
+          },
+          "total_amount": {
+            "type": "integer",
+            "description": "Total amount in cents"
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code",
+            "default": "USD"
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "description": "Protocol creation timestamp"
+            "description": "Creation timestamp"
           },
           "updated_at": {
             "type": "string",
             "format": "date-time",
-            "description": "Protocol last update timestamp"
+            "description": "Last update timestamp"
           }
         },
-        "additionalProperties": false
+        "example": {
+          "id": "ord_abc123",
+          "patient_id": "pat_xyz789",
+          "product_id": "prod_def456",
+          "questionnaire_response_id": "qr_ghi789",
+          "status": "confirmed",
+          "total_amount": 29900,
+          "currency": "USD",
+          "created_at": "2024-12-02T10:30:00Z",
+          "updated_at": "2024-12-02T10:35:00Z"
+        }
       },
-      "ProtocolInput": {
+      "OrderInput": {
         "type": "object",
-        "required": ["name", "program_ids"],
+        "required": ["patient_id", "product_id"],
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Protocol name"
-          },
-          "description": {
-            "type": "string",
-            "description": "Protocol description"
-          },
-          "program_ids": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            },
-            "description": "Array of program IDs associated with this protocol"
-          },
-          "intake_form_metadata": {
-            "type": "object",
-            "description": "Metadata for intake form configuration",
-            "properties": {
-              "form_id": {
-                "type": "string",
-                "description": "Intake form identifier"
-              },
-              "required_fields": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "description": "List of required form fields"
-              },
-              "custom_fields": {
-                "type": "object",
-                "description": "Custom form field configurations"
-              }
-            }
-          },
-          "is_standard": {
-            "type": "boolean",
-            "description": "Whether this is a standard protocol (1:1 with program) or custom (N:1)",
-            "default": false
-          }
-        },
-        "additionalProperties": false
-      },
-      "ProtocolEnrollment": {
-        "type": "object",
-        "required": ["protocol_id", "patient_id", "program_enrollments"],
-        "properties": {
-          "protocol_id": {
-            "type": "string",
-            "description": "Protocol identifier"
-          },
           "patient_id": {
             "type": "string",
-            "description": "Patient identifier"
+            "description": "Patient ID"
           },
-          "program_enrollments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Enrollment"
-            },
-            "description": "Array of individual program enrollments created by this protocol enrollment"
+          "product_id": {
+            "type": "string",
+            "description": "Product ID"
+          },
+          "questionnaire_response_id": {
+            "type": "string",
+            "description": "Questionnaire response ID"
           }
         },
-        "additionalProperties": false
+        "example": {
+          "patient_id": "pat_xyz789",
+          "product_id": "prod_def456",
+          "questionnaire_response_id": "qr_ghi789"
+        }
       },
-      "ProtocolEnrollmentInput": {
+      "OrderUpdateInput": {
         "type": "object",
-        "required": ["protocol_id", "stripe_customer_id", "stripe_product_id"],
         "properties": {
-          "protocol_id": {
+          "status": {
             "type": "string",
-            "description": "Protocol identifier to enroll in"
-          },
-          "stripe_customer_id": {
-            "type": "string",
-            "description": "Stripe customer ID"
-          },
-          "stripe_product_id": {
-            "type": "string",
-            "description": "Stripe product ID"
+            "enum": ["pending", "confirmed", "completed", "cancelled"],
+            "description": "Order status"
           }
         },
-        "additionalProperties": false
+        "example": {
+          "status": "confirmed"
+        }
+      },
+      "OrderResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["order"],
+            "properties": {
+              "order": {
+                "$ref": "#/components/schemas/Order"
+              }
+            }
+          }
+        }
+      },
+      "OrderListResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["orders", "pagination"],
+            "properties": {
+              "orders": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              },
+              "pagination": {
+                "$ref": "#/components/schemas/Pagination"
+              }
+            }
+          }
+        }
       }
     },
     "responses": {
@@ -1660,27 +2167,8 @@
           }
         }
       },
-      "BadRequestError": {
-        "description": "Bad Request - Invalid request data",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "examples": {
-              "bad_request": {
-                "summary": "Bad Request",
-                "value": {
-                  "error": "BadRequest",
-                  "message": "Invalid request data"
-                }
-              }
-            }
-          }
-        }
-      },
       "ValidationError": {
-        "description": "Unprocessable Entity - Validation error",
+        "description": "Bad Request - Validation error or invalid data",
         "content": {
           "application/json": {
             "schema": {
@@ -1720,3 +2208,4 @@
     }
   }
 }
+
