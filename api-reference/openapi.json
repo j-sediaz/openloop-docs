@@ -2,11 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Partners API",
-    "description": "Partners API v1 - Patient management endpoints. This version focuses exclusively on patient operations.",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "description": "Partners API v1 - Clinical workflow management including patients, orders, labs, and documents.",
+    "version": "1.1.0"
   },
   "servers": [
     {
@@ -25,6 +22,7 @@
   "paths": {
     "/health": {
       "get": {
+        "operationId": "getHealth",
         "summary": "Health Check",
         "description": "Health check endpoint",
         "tags": ["System"],
@@ -64,6 +62,7 @@
     },
     "/patients": {
       "get": {
+        "operationId": "listPatients",
         "summary": "List Patients",
         "description": "List all patients with optional filtering and pagination",
         "tags": ["Patients"],
@@ -153,6 +152,7 @@
         }
       },
       "post": {
+        "operationId": "createPatient",
         "summary": "Create Patient",
         "description": "Create a new patient",
         "tags": ["Patients"],
@@ -252,6 +252,7 @@
     },
     "/patients/{id}": {
       "get": {
+        "operationId": "getPatient",
         "summary": "Get Patient",
         "description": "Get a specific patient by ID",
         "tags": ["Patients"],
@@ -342,9 +343,10 @@
           }
         }
       },
-      "put": {
+      "patch": {
+        "operationId": "updatePatient",
         "summary": "Update Patient",
-        "description": "Update a patient",
+        "description": "Update patient information (partial updates supported)",
         "tags": ["Patients"],
         "parameters": [
           {
@@ -455,6 +457,7 @@
         }
       },
       "delete": {
+        "operationId": "deletePatient",
         "summary": "Delete Patient",
         "description": "Delete a patient",
         "tags": ["Patients"],
@@ -482,8 +485,515 @@
         }
       }
     },
+    "/documents": {
+      "post": {
+        "operationId": "createDocument",
+        "summary": "Create Document",
+        "description": "Upload identity or verification document for a patient",
+        "tags": ["Documents"],
+        "requestBody": {
+          "description": "Document data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Document created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "get": {
+        "operationId": "listDocuments",
+        "summary": "List Documents",
+        "description": "Get all documents with optional filtering",
+        "tags": ["Documents"],
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "query",
+            "description": "Filter by patient ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by document type",
+            "schema": {
+              "type": "string",
+              "enum": ["drivers_license", "passport", "state_id", "insurance_card", "other"]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status",
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "verified", "rejected", "expired"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/documents/{id}": {
+      "get": {
+        "operationId": "getDocument",
+        "summary": "Get Document",
+        "description": "Retrieve a specific document",
+        "tags": ["Documents"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Document ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateDocument",
+        "summary": "Update Document",
+        "description": "Update document information including verification status",
+        "tags": ["Documents"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Document ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Document update data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Document updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteDocument",
+        "summary": "Delete Document",
+        "description": "Remove a document",
+        "tags": ["Documents"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Document ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Document deleted successfully"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/patients/{id}/documents": {
+      "get": {
+        "operationId": "listPatientDocuments",
+        "summary": "List Patient Documents (Convenience)",
+        "description": "Shortcut to get all documents for a specific patient. Equivalent to GET /documents?patient_id={id}",
+        "tags": ["Documents"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Patient ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of patient documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/uploads": {
+      "post": {
+        "operationId": "uploadFile",
+        "summary": "Upload File",
+        "description": "Upload a file (document, lab result, etc.) and receive a secure URL. Use this URL when creating documents or submitting other resources that require file attachments.",
+        "tags": ["Uploads"],
+        "requestBody": {
+          "description": "File to upload",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File to upload (max 10MB)"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["document", "lab_result", "prescription", "other"],
+                    "description": "Type of file being uploaded"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "File uploaded",
+                    "value": {
+                      "message": "File uploaded successfully",
+                      "data": {
+                        "file_url": "https://secure.openloop.com/files/abc123def456.pdf",
+                        "file_id": "file_abc123def456",
+                        "file_type": "application/pdf",
+                        "file_size": 245678,
+                        "expires_at": "2025-01-25T14:30:00Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "413": {
+            "description": "File too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "file_too_large": {
+                    "summary": "File Too Large",
+                    "value": {
+                      "error": "ValidationError",
+                      "message": "File size exceeds maximum allowed (10MB)"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/questionnaire-responses": {
+      "post": {
+        "operationId": "submitQuestionnaireResponse",
+        "summary": "Submit Questionnaire Response",
+        "description": "Submit a completed questionnaire response for a patient",
+        "tags": ["Questionnaires"],
+        "requestBody": {
+          "description": "Questionnaire response data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionnaireResponseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Questionnaire response submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionnaireResponseSubmitResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Response submitted",
+                    "value": {
+                      "message": "Questionnaire response submitted successfully",
+                      "data": {
+                        "questionnaire_response": {
+                          "id": "qr_abc123",
+                          "patient_id": "pat_xyz789",
+                          "questionnaire_id": "q_trt_intake",
+                          "program_id": "prog_trt_001",
+                          "answers": {
+                            "main_symptom": "low_energy",
+                            "duration_months": 12,
+                            "history_of_prostate_cancer": false
+                          },
+                          "risk_assessment": {
+                            "risk_level": "low",
+                            "requires_sync_consult": false,
+                            "next_step": "allow_async_order"
+                          },
+                          "completed_at": "2025-01-15T14:30:00Z",
+                          "created_at": "2025-01-15T14:25:00Z"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "get": {
+        "operationId": "listQuestionnaireResponses",
+        "summary": "List Questionnaire Responses",
+        "description": "Retrieve questionnaire responses with optional filtering",
+        "tags": ["Questionnaires"],
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "query",
+            "description": "Filter by patient ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "questionnaire_id",
+            "in": "query",
+            "description": "Filter by questionnaire ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "program_id",
+            "in": "query",
+            "description": "Filter by program ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Questionnaire responses retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionnaireResponseListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/questionnaire-responses/{id}": {
+      "get": {
+        "operationId": "getQuestionnaireResponse",
+        "summary": "Get Questionnaire Response",
+        "description": "Retrieve a specific questionnaire response",
+        "tags": ["Questionnaires"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Questionnaire Response ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Questionnaire response retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionnaireResponseSubmitResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
     "/programs": {
       "get": {
+        "operationId": "listPrograms",
         "summary": "List Programs",
         "description": "Get all available clinical vertical programs (BH, DERM, SLEEP, etc.)",
         "tags": ["Programs"],
@@ -556,6 +1066,7 @@
     },
     "/programs/{programId}": {
       "get": {
+        "operationId": "getProgram",
         "summary": "Get Program",
         "description": "Retrieve details of a specific program by its abbreviation ID",
         "tags": ["Programs"],
@@ -611,6 +1122,7 @@
     },
     "/programs/{programId}/questionnaires": {
       "get": {
+        "operationId": "getProgramQuestionnaire",
         "summary": "Get Program Questionnaire",
         "description": "Retrieve the questionnaire required for a specific program",
         "tags": ["Programs"],
@@ -670,6 +1182,7 @@
     },
     "/programs/{programId}/products": {
       "get": {
+        "operationId": "getProgramProducts",
         "summary": "Get Program Products",
         "description": "Get all products associated with a specific program",
         "tags": ["Programs"],
@@ -706,6 +1219,7 @@
     },
     "/products": {
       "get": {
+        "operationId": "listProducts",
         "summary": "List Products",
         "description": "Get all available products with optional filtering by program, payment provider, or client",
         "tags": ["Products"],
@@ -804,6 +1318,7 @@
     },
     "/funnel-responses": {
       "post": {
+        "operationId": "createFunnelResponse",
         "summary": "Create Funnel Response",
         "description": "Create a patient, questionnaire response, and invoices in one operation",
         "tags": ["Funnel Responses"],
@@ -853,6 +1368,7 @@
     },
     "/orders": {
       "get": {
+        "operationId": "listOrders",
         "summary": "List Orders",
         "description": "Retrieve all orders with optional filtering",
         "tags": ["Orders"],
@@ -944,6 +1460,7 @@
         }
       },
       "post": {
+        "operationId": "createOrder",
         "summary": "Create Order",
         "description": "Create a new order based on patient, product, and questionnaire",
         "tags": ["Orders"],
@@ -998,6 +1515,7 @@
     },
     "/orders/{id}": {
       "get": {
+        "operationId": "getOrder",
         "summary": "Get Order",
         "description": "Retrieve a specific order by ID",
         "tags": ["Orders"],
@@ -1031,9 +1549,10 @@
           }
         }
       },
-      "put": {
+      "patch": {
+        "operationId": "updateOrder",
         "summary": "Update Order",
-        "description": "Update an existing order",
+        "description": "Update an existing order including fulfillment, review, and other fields",
         "tags": ["Orders"],
         "parameters": [
           {
@@ -1080,6 +1599,7 @@
         }
       },
       "delete": {
+        "operationId": "deleteOrder",
         "summary": "Delete Order",
         "description": "Delete an order by ID",
         "tags": ["Orders"],
@@ -1097,6 +1617,232 @@
         "responses": {
           "204": {
             "description": "Order deleted successfully"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/orders/{id}/labs": {
+      "get": {
+        "operationId": "getOrderLabs",
+        "summary": "Get Order Labs (Convenience)",
+        "description": "Shortcut to get all lab orders for a specific order. Equivalent to GET /lab-orders?order_id={id}",
+        "tags": ["Labs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Order ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lab orders retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabOrderListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/lab-orders": {
+      "post": {
+        "operationId": "createLabOrder",
+        "summary": "Create Lab Order",
+        "description": "Create a new lab order for a patient",
+        "tags": ["Labs"],
+        "requestBody": {
+          "description": "Lab order data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabOrderInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Lab order created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "get": {
+        "operationId": "listLabOrders",
+        "summary": "List Lab Orders",
+        "description": "Retrieve all lab orders with optional filtering",
+        "tags": ["Labs"],
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "query",
+            "description": "Filter by patient ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order_id",
+            "in": "query",
+            "description": "Filter by order ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by lab order status",
+            "schema": {
+              "type": "string",
+              "enum": ["ordered", "received", "completed", "reviewed", "cancelled"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lab orders retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabOrderListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/lab-orders/{id}": {
+      "get": {
+        "operationId": "getLabOrder",
+        "summary": "Get Lab Order",
+        "description": "Retrieve a specific lab order by ID",
+        "tags": ["Labs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Lab Order ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lab order retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabOrderResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateLabOrder",
+        "summary": "Update Lab Order",
+        "description": "Update lab order including status, results, and other fields",
+        "tags": ["Labs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Lab Order ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Lab order update data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabOrderUpdateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Lab order updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
           },
           "404": {
             "$ref": "#/components/responses/NotFoundError"
@@ -1998,9 +2744,17 @@
             "type": "string",
             "description": "Order ID"
           },
+          "organization_id": {
+            "type": "string",
+            "description": "Organization ID"
+          },
           "patient_id": {
             "type": "string",
             "description": "Patient ID"
+          },
+          "program_id": {
+            "type": "string",
+            "description": "Program ID"
           },
           "product_id": {
             "type": "string",
@@ -2012,10 +2766,143 @@
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "confirmed", "completed", "cancelled"],
+            "enum": ["pending_payment", "paid", "pending_review", "approved", "rejected", "fulfilling", "fulfilled", "active", "cancelled", "on_hold"],
             "description": "Order status"
           },
-          "total_amount": {
+          "payment_status": {
+            "type": "string",
+            "enum": ["pending", "paid", "failed", "refunded", "partially_refunded"],
+            "description": "Payment status"
+          },
+          "clinical_status": {
+            "type": "object",
+            "properties": {
+              "eligibility_check": {
+                "type": "string",
+                "enum": ["passed", "failed", "pending"],
+                "description": "Eligibility check result"
+              },
+              "risk_level": {
+                "type": "string",
+                "enum": ["low", "medium", "high"],
+                "description": "Clinical risk level"
+              },
+              "requires_sync_consult": {
+                "type": "boolean",
+                "description": "Whether synchronous consultation is required"
+              },
+              "approval_status": {
+                "type": "string",
+                "enum": ["pending_provider_review", "approved", "rejected", "needs_more_info"],
+                "description": "Provider approval status"
+              }
+            }
+          },
+          "labs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LabOrder"
+            },
+            "description": "Associated lab orders"
+          },
+          "review": {
+            "type": "object",
+            "properties": {
+              "assigned_provider_id": {
+                "type": "string",
+                "description": "ID of assigned provider"
+              },
+              "assigned_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When provider was assigned"
+              },
+              "reviewed_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When review was completed"
+              },
+              "decision": {
+                "type": "string",
+                "enum": ["approved", "rejected", "needs_more_info"],
+                "description": "Provider decision"
+              },
+              "provider_notes": {
+                "type": "string",
+                "description": "Internal provider notes"
+              },
+              "patient_facing_notes": {
+                "type": "string",
+                "description": "Notes visible to patient"
+              },
+              "requires_sync_consult": {
+                "type": "boolean",
+                "description": "Whether sync consultation is required"
+              },
+              "consult_scheduled_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Scheduled consultation time"
+              }
+            }
+          },
+          "fulfillment": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["not_started", "processing", "shipped", "delivered", "failed"],
+                "description": "Fulfillment status"
+              },
+              "pharmacy_id": {
+                "type": "string",
+                "description": "Pharmacy ID"
+              },
+              "tracking_number": {
+                "type": "string",
+                "description": "Shipment tracking number"
+              },
+              "carrier": {
+                "type": "string",
+                "description": "Shipping carrier"
+              },
+              "shipped_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Shipment timestamp"
+              },
+              "estimated_delivery": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Estimated delivery date"
+              },
+              "delivered_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Actual delivery timestamp"
+              }
+            }
+          },
+          "pricing": {
+            "type": "object",
+            "properties": {
+              "subtotal": {
+                "type": "integer",
+                "description": "Subtotal in cents"
+              },
+              "shipping": {
+                "type": "integer",
+                "description": "Shipping cost in cents"
+              },
+              "tax": {
+                "type": "integer",
+                "description": "Tax amount in cents"
+              },
+              "discount": {
+                "type": "integer",
+                "description": "Discount amount in cents"
+              },
+              "total": {
             "type": "integer",
             "description": "Total amount in cents"
           },
@@ -2023,6 +2910,44 @@
             "type": "string",
             "description": "Currency code",
             "default": "USD"
+              }
+            }
+          },
+          "subscription": {
+            "type": "object",
+            "properties": {
+              "is_subscription": {
+                "type": "boolean",
+                "description": "Whether this is a subscription order"
+              },
+              "subscription_id": {
+                "type": "string",
+                "description": "External subscription ID (e.g., Stripe subscription)"
+              },
+              "next_billing_date": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Next billing date"
+              },
+              "auto_renew": {
+                "type": "boolean",
+                "description": "Whether auto-renewal is enabled"
+              }
+            }
+          },
+          "total_amount": {
+            "type": "integer",
+            "description": "Total amount in cents (deprecated, use pricing.total)"
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code (deprecated, use pricing.currency)",
+            "default": "USD"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional metadata (payment IDs, campaign info, etc.)"
           },
           "created_at": {
             "type": "string",
@@ -2036,15 +2961,64 @@
           }
         },
         "example": {
-          "id": "ord_abc123",
-          "patient_id": "pat_xyz789",
-          "product_id": "prod_def456",
-          "questionnaire_response_id": "qr_ghi789",
-          "status": "confirmed",
-          "total_amount": 29900,
-          "currency": "USD",
-          "created_at": "2024-12-02T10:30:00Z",
-          "updated_at": "2024-12-02T10:35:00Z"
+          "id": "ord_7b12f9c8-5340-4b0f-bef3",
+          "organization_id": "org_trt_clinic_001",
+          "patient_id": "pat_9f4c2b1e-8c3d-4b0f",
+          "program_id": "prog_trt_001",
+          "product_id": "prod_trt_monthly_0100",
+          "questionnaire_response_id": "qr_abc123",
+          "status": "pending_review",
+          "payment_status": "paid",
+          "clinical_status": {
+            "eligibility_check": "passed",
+            "risk_level": "low",
+            "requires_sync_consult": false,
+            "approval_status": "pending_provider_review"
+          },
+          "labs": [
+            {
+              "id": "labord_001",
+              "lab_id": "lab_total_testosterone",
+              "lab_name": "Total Testosterone",
+              "status": "ordered"
+            }
+          ],
+          "review": {
+            "assigned_provider_id": "prov_1234",
+            "assigned_at": "2025-01-11T14:20:00Z",
+            "reviewed_at": null,
+            "decision": null,
+            "provider_notes": null,
+            "patient_facing_notes": null,
+            "requires_sync_consult": false,
+            "consult_scheduled_at": null
+          },
+          "fulfillment": {
+            "status": "not_started",
+            "pharmacy_id": null,
+            "tracking_number": null,
+            "carrier": null
+          },
+          "pricing": {
+            "subtotal": 19900,
+            "shipping": 0,
+            "tax": 0,
+            "discount": 0,
+            "total": 19900,
+            "currency": "USD"
+          },
+          "subscription": {
+            "is_subscription": true,
+            "subscription_id": "sub_stripe_xyz",
+            "next_billing_date": "2025-02-11T14:15:00Z",
+            "auto_renew": true
+          },
+          "metadata": {
+            "external_payment_intent_id": "pi_3Qxxxxxx",
+            "campaign": "new_year_promo_2025"
+          },
+          "created_at": "2025-01-11T14:15:00Z",
+          "updated_at": "2025-01-11T14:20:00Z"
         }
       },
       "OrderInput": {
@@ -2055,6 +3029,10 @@
             "type": "string",
             "description": "Patient ID"
           },
+          "program_id": {
+            "type": "string",
+            "description": "Program ID"
+          },
           "product_id": {
             "type": "string",
             "description": "Product ID"
@@ -2062,12 +3040,27 @@
           "questionnaire_response_id": {
             "type": "string",
             "description": "Questionnaire response ID"
+          },
+          "payment_method_id": {
+            "type": "string",
+            "description": "Payment method ID (e.g., Stripe payment method)"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional metadata (campaign info, partner IDs, etc.)"
           }
         },
         "example": {
           "patient_id": "pat_xyz789",
-          "product_id": "prod_def456",
-          "questionnaire_response_id": "qr_ghi789"
+          "program_id": "prog_trt_001",
+          "product_id": "prod_trt_monthly_0100",
+          "questionnaire_response_id": "qr_ghi789",
+          "payment_method_id": "pm_stripe_abc123",
+          "metadata": {
+            "campaign": "new_year_promo_2025",
+            "utm_source": "partner_referral"
+          }
         }
       },
       "OrderUpdateInput": {
@@ -2075,12 +3068,67 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["pending", "confirmed", "completed", "cancelled"],
+            "enum": ["pending_payment", "paid", "pending_review", "approved", "rejected", "fulfilling", "fulfilled", "active", "cancelled", "on_hold"],
             "description": "Order status"
+          },
+          "payment_status": {
+            "type": "string",
+            "enum": ["pending", "paid", "failed", "refunded", "partially_refunded"],
+            "description": "Payment status"
+          },
+          "review": {
+            "type": "object",
+            "properties": {
+              "assigned_provider_id": {
+                "type": "string"
+              },
+              "decision": {
+                "type": "string",
+                "enum": ["approved", "rejected", "needs_more_info"]
+              },
+              "provider_notes": {
+                "type": "string"
+              },
+              "patient_facing_notes": {
+                "type": "string"
+              }
+            }
+          },
+          "fulfillment": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["not_started", "processing", "shipped", "delivered", "failed"]
+              },
+              "pharmacy_id": {
+                "type": "string"
+              },
+              "tracking_number": {
+                "type": "string"
+              },
+              "carrier": {
+                "type": "string"
+              },
+              "shipped_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "estimated_delivery": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
           }
         },
         "example": {
-          "status": "confirmed"
+          "status": "approved",
+          "fulfillment": {
+            "status": "shipped",
+            "tracking_number": "1Z999AA10123456784",
+            "carrier": "UPS",
+            "shipped_at": "2025-01-15T14:00:00Z"
+          }
         }
       },
       "OrderResponse": {
@@ -2118,6 +3166,749 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/Order"
+                }
+              },
+              "pagination": {
+                "$ref": "#/components/schemas/Pagination"
+              }
+            }
+          }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "required": ["id", "patient_id", "type", "status", "uploaded_at"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Document ID"
+          },
+          "patient_id": {
+            "type": "string",
+            "description": "Patient ID"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["drivers_license", "passport", "state_id", "insurance_card", "other"],
+            "description": "Document type"
+          },
+          "document_number": {
+            "type": "string",
+            "description": "Document number (e.g., license number, passport number)"
+          },
+          "issuing_state": {
+            "type": "string",
+            "description": "Issuing state (for US documents)"
+          },
+          "issuing_country": {
+            "type": "string",
+            "description": "Issuing country (2-letter code)"
+          },
+          "expiration_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Document expiration date"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "verified", "rejected", "expired"],
+            "description": "Document verification status"
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Whether the document has been verified"
+          },
+          "verified_by": {
+            "type": "string",
+            "description": "ID of user who verified the document"
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when document was verified"
+          },
+          "file_url": {
+            "type": "string",
+            "description": "Secure URL to access the document file"
+          },
+          "file_type": {
+            "type": "string",
+            "description": "File MIME type (e.g., image/jpeg, application/pdf)"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Verification notes or additional information"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when document was uploaded"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of last update"
+          }
+        },
+        "example": {
+          "id": "doc_abc123",
+          "patient_id": "pat_xyz789",
+          "type": "drivers_license",
+          "document_number": "D1234567",
+          "issuing_state": "CA",
+          "issuing_country": "US",
+          "expiration_date": "2028-05-15",
+          "status": "verified",
+          "verified": true,
+          "verified_by": "admin_001",
+          "verified_at": "2025-01-12T10:00:00Z",
+          "file_url": "https://secure.openloop.com/documents/doc_abc123.pdf",
+          "file_type": "application/pdf",
+          "notes": "Document verified successfully",
+          "uploaded_at": "2025-01-11T14:30:00Z",
+          "updated_at": "2025-01-12T10:00:00Z"
+        }
+      },
+      "DocumentInput": {
+        "type": "object",
+        "required": ["patient_id", "type", "file_url"],
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "description": "Patient ID"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["drivers_license", "passport", "state_id", "insurance_card", "other"],
+            "description": "Document type"
+          },
+          "document_number": {
+            "type": "string",
+            "description": "Document number"
+          },
+          "issuing_state": {
+            "type": "string",
+            "description": "Issuing state (for US documents)"
+          },
+          "issuing_country": {
+            "type": "string",
+            "description": "Issuing country (2-letter code)"
+          },
+          "expiration_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Document expiration date"
+          },
+          "file_url": {
+            "type": "string",
+            "description": "URL to the uploaded document file"
+          },
+          "file_type": {
+            "type": "string",
+            "description": "File MIME type"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "example": {
+          "patient_id": "pat_xyz789",
+          "type": "drivers_license",
+          "document_number": "D1234567",
+          "issuing_state": "CA",
+          "issuing_country": "US",
+          "expiration_date": "2028-05-15",
+          "file_url": "https://secure.openloop.com/documents/temp_upload.pdf",
+          "file_type": "application/pdf"
+        }
+      },
+      "DocumentUpdateInput": {
+        "type": "object",
+        "properties": {
+          "document_number": {
+            "type": "string",
+            "description": "Document number"
+          },
+          "issuing_state": {
+            "type": "string",
+            "description": "Issuing state"
+          },
+          "issuing_country": {
+            "type": "string",
+            "description": "Issuing country"
+          },
+          "expiration_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Document expiration date"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "verified", "rejected", "expired"],
+            "description": "Document status"
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Whether the document has been verified"
+          },
+          "verified_by": {
+            "type": "string",
+            "description": "ID of user who verified the document"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Verification notes or additional information"
+          }
+        },
+        "example": {
+          "verified": true,
+          "verified_by": "admin_001",
+          "status": "verified",
+          "notes": "Document verified successfully"
+        }
+      },
+      "DocumentResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["document"],
+            "properties": {
+              "document": {
+                "$ref": "#/components/schemas/Document"
+              }
+            }
+          }
+        }
+      },
+      "DocumentListResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["documents"],
+            "properties": {
+              "documents": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          }
+        }
+      },
+      "LabOrder": {
+        "type": "object",
+        "required": ["id", "patient_id", "lab_id", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Lab order ID"
+          },
+          "patient_id": {
+            "type": "string",
+            "description": "Patient ID"
+          },
+          "order_id": {
+            "type": "string",
+            "description": "Associated order ID (if part of an order)"
+          },
+          "lab_id": {
+            "type": "string",
+            "description": "Lab test identifier (e.g., lab_total_testosterone)"
+          },
+          "lab_name": {
+            "type": "string",
+            "description": "Human-readable lab test name"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ordered", "received", "completed", "reviewed", "cancelled"],
+            "description": "Lab order status"
+          },
+          "ordered_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when lab was ordered"
+          },
+          "collected_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when sample was collected"
+          },
+          "results_received_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when results were received"
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when results were reviewed by provider"
+          },
+          "value": {
+            "type": "string",
+            "description": "Lab result value"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit of measurement (e.g., ng/dL, mg/L)"
+          },
+          "reference_range": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "number",
+                "description": "Minimum reference value"
+              },
+              "max": {
+                "type": "number",
+                "description": "Maximum reference value"
+              }
+            }
+          },
+          "in_range": {
+            "type": "boolean",
+            "description": "Whether the result is within normal range"
+          },
+          "flag": {
+            "type": "string",
+            "enum": ["normal", "low", "high", "critical"],
+            "description": "Result flag"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Provider notes or additional information"
+          },
+          "lab_provider": {
+            "type": "string",
+            "description": "Lab provider name (e.g., Quest, LabCorp)"
+          },
+          "requisition_number": {
+            "type": "string",
+            "description": "Lab requisition number"
+          },
+          "file_url": {
+            "type": "string",
+            "description": "URL to lab results PDF"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "example": {
+          "id": "labord_abc123",
+          "patient_id": "pat_xyz789",
+          "order_id": "ord_def456",
+          "lab_id": "lab_total_testosterone",
+          "lab_name": "Total Testosterone",
+          "status": "completed",
+          "ordered_at": "2025-01-11T14:15:00Z",
+          "collected_at": "2025-01-13T09:00:00Z",
+          "results_received_at": "2025-01-14T16:30:00Z",
+          "reviewed_at": "2025-01-14T17:00:00Z",
+          "value": "350",
+          "unit": "ng/dL",
+          "reference_range": {
+            "min": 300,
+            "max": 1000
+          },
+          "in_range": true,
+          "flag": "normal",
+          "notes": "Results within normal range",
+          "lab_provider": "Quest Diagnostics",
+          "requisition_number": "REQ123456",
+          "file_url": "https://secure.openloop.com/labs/labord_abc123.pdf",
+          "created_at": "2025-01-11T14:15:00Z",
+          "updated_at": "2025-01-14T17:00:00Z"
+        }
+      },
+      "LabOrderInput": {
+        "type": "object",
+        "required": ["patient_id", "lab_id"],
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "description": "Patient ID"
+          },
+          "order_id": {
+            "type": "string",
+            "description": "Associated order ID"
+          },
+          "lab_id": {
+            "type": "string",
+            "description": "Lab test identifier"
+          },
+          "lab_provider": {
+            "type": "string",
+            "description": "Preferred lab provider"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "example": {
+          "patient_id": "pat_xyz789",
+          "order_id": "ord_def456",
+          "lab_id": "lab_total_testosterone",
+          "lab_provider": "Quest Diagnostics",
+          "notes": "Fasting required"
+        }
+      },
+      "LabOrderUpdateInput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ordered", "received", "completed", "reviewed", "cancelled"],
+            "description": "Lab order status"
+          },
+          "collected_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Sample collection timestamp"
+          },
+          "results_received_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Results received timestamp"
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Results reviewed timestamp"
+          },
+          "value": {
+            "type": "string",
+            "description": "Lab result value"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit of measurement"
+          },
+          "reference_range": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              }
+            }
+          },
+          "in_range": {
+            "type": "boolean",
+            "description": "Whether result is within range"
+          },
+          "flag": {
+            "type": "string",
+            "enum": ["normal", "low", "high", "critical"],
+            "description": "Result flag"
+          },
+          "file_url": {
+            "type": "string",
+            "description": "URL to lab results file"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "example": {
+          "status": "completed",
+          "value": "350",
+          "unit": "ng/dL",
+          "reference_range": {
+            "min": 300,
+            "max": 1000
+          },
+          "flag": "normal",
+          "in_range": true,
+          "results_received_at": "2025-01-14T16:30:00Z",
+          "notes": "Results within normal range"
+        }
+      },
+      "LabOrderResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["lab_order"],
+            "properties": {
+              "lab_order": {
+                "$ref": "#/components/schemas/LabOrder"
+              }
+            }
+          }
+        }
+      },
+      "LabOrderListResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["lab_orders"],
+            "properties": {
+              "lab_orders": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/LabOrder"
+                }
+              },
+              "pagination": {
+                "$ref": "#/components/schemas/Pagination"
+              }
+            }
+          }
+        }
+      },
+      "UploadResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["file_url", "file_id", "file_type"],
+            "properties": {
+              "file_url": {
+                "type": "string",
+                "description": "Secure URL to access the uploaded file"
+              },
+              "file_id": {
+                "type": "string",
+                "description": "Unique file identifier"
+              },
+              "file_type": {
+                "type": "string",
+                "description": "MIME type of the uploaded file"
+              },
+              "file_size": {
+                "type": "integer",
+                "description": "File size in bytes"
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "URL expiration timestamp (null if permanent)"
+              }
+            }
+          }
+        },
+        "example": {
+          "message": "File uploaded successfully",
+          "data": {
+            "file_url": "https://secure.openloop.com/files/abc123def456.pdf",
+            "file_id": "file_abc123def456",
+            "file_type": "application/pdf",
+            "file_size": 245678,
+            "expires_at": null
+          }
+        }
+      },
+      "QuestionnaireResponseSubmitted": {
+        "type": "object",
+        "required": ["id", "patient_id", "questionnaire_id", "answers"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Questionnaire response ID"
+          },
+          "patient_id": {
+            "type": "string",
+            "description": "Patient ID"
+          },
+          "questionnaire_id": {
+            "type": "string",
+            "description": "Questionnaire ID"
+          },
+          "program_id": {
+            "type": "string",
+            "description": "Program ID"
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Question answers (question_id: answer)"
+          },
+          "risk_assessment": {
+            "type": "object",
+            "properties": {
+              "risk_level": {
+                "type": "string",
+                "enum": ["low", "medium", "high"],
+                "description": "Calculated risk level"
+              },
+              "requires_sync_consult": {
+                "type": "boolean",
+                "description": "Whether synchronous consultation is required"
+              },
+              "next_step": {
+                "type": "string",
+                "description": "Recommended next step"
+              },
+              "flags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Clinical flags raised by responses"
+              }
+            }
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When questionnaire was completed"
+          },
+          "reviewed_by": {
+            "type": "string",
+            "description": "Provider ID who reviewed (if applicable)"
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When response was reviewed"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "example": {
+          "id": "qr_abc123",
+          "patient_id": "pat_xyz789",
+          "questionnaire_id": "q_trt_intake",
+          "program_id": "prog_trt_001",
+          "answers": {
+            "main_symptom": "low_energy",
+            "duration_months": 12,
+            "history_of_prostate_cancer": false,
+            "current_medications": ["Lisinopril", "Metformin"]
+          },
+          "risk_assessment": {
+            "risk_level": "low",
+            "requires_sync_consult": false,
+            "next_step": "allow_async_order",
+            "flags": []
+          },
+          "completed_at": "2025-01-15T14:30:00Z",
+          "reviewed_by": null,
+          "reviewed_at": null,
+          "created_at": "2025-01-15T14:25:00Z",
+          "updated_at": "2025-01-15T14:30:00Z"
+        }
+      },
+      "QuestionnaireResponseInput": {
+        "type": "object",
+        "required": ["patient_id", "questionnaire_id", "answers"],
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "description": "Patient ID"
+          },
+          "questionnaire_id": {
+            "type": "string",
+            "description": "Questionnaire ID"
+          },
+          "program_id": {
+            "type": "string",
+            "description": "Program ID (optional if questionnaire already linked)"
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Question answers as key-value pairs (question_id: answer)"
+          }
+        },
+        "example": {
+          "patient_id": "pat_xyz789",
+          "questionnaire_id": "q_trt_intake",
+          "program_id": "prog_trt_001",
+          "answers": {
+            "main_symptom": "low_energy",
+            "duration_months": 12,
+            "history_of_prostate_cancer": false,
+            "current_medications": ["Lisinopril", "Metformin"],
+            "previous_trt_experience": false
+          }
+        }
+      },
+      "QuestionnaireResponseSubmitResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["questionnaire_response"],
+            "properties": {
+              "questionnaire_response": {
+                "$ref": "#/components/schemas/QuestionnaireResponseSubmitted"
+              }
+            }
+          }
+        }
+      },
+      "QuestionnaireResponseListResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          },
+          "data": {
+            "type": "object",
+            "required": ["questionnaire_responses"],
+            "properties": {
+              "questionnaire_responses": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/QuestionnaireResponseSubmitted"
                 }
               },
               "pagination": {
