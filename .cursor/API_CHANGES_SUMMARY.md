@@ -282,7 +282,6 @@ POST /orders
   "program_id": "prog_trt_001",
   "product_id": "prod_trt_monthly_0100",
   "questionnaire_response_id": "qr_ghi789",
-  "payment_method_id": "pm_stripe_abc123",
   "metadata": {
     "campaign": "new_year_promo_2025",
     "utm_source": "partner_referral",
@@ -403,8 +402,7 @@ POST /orders
 {
   "patient_id": "pat_123",
   "product_id": "prod_trt_001",
-  "questionnaire_response_id": "qr_789",
-  "payment_method_id": "pm_stripe_abc"
+  "questionnaire_response_id": "qr_789"
 }
 
 # 5. System automatically creates lab orders

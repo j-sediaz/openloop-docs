@@ -123,9 +123,9 @@ No webhook system currently defined.
 ---
 
 ### Payments
-Currently orders reference `payment_method_id` and `payment_status` but no payment endpoints.
+Payment processing is handled internally by the backend. Orders reference `payment_status` internally but payment method details are abstracted from partner API clients.
 
-**Possible additions:**
+**Possible future additions:**
 - `POST /payment-intents` - Create payment intent
 - `POST /payment-methods` - Save payment method
 - `GET /payments/{id}` - Get payment details

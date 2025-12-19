@@ -19,6 +19,32 @@
       "bearerAuth": []
     }
   ],
+  "tags": [
+    {
+      "name": "System",
+      "description": "Health check endpoint"
+    },
+    {
+      "name": "Programs",
+      "description": "✅ MVP - Available programs and their questionnaires (currently: Medical Weight Loss)"
+    },
+    {
+      "name": "Questionnaires (MVP)",
+      "description": "✅ MVP - Submit and retrieve patient questionnaire responses for MWL"
+    },
+    {
+      "name": "Patients (MVP)",
+      "description": "✅ MVP - Patient management for Medical Weight Loss program"
+    },
+    {
+      "name": "Products (MVP)",
+      "description": "✅ MVP - MWL product catalog (Semaglutide & Tirzepatide - Oral/Injection, 4/12/24/48 week supplies)"
+    },
+    {
+      "name": "Orders (MVP)",
+      "description": "✅ MVP - Order management for MWL subscriptions"
+    }
+  ],
   "paths": {
     "/health": {
       "get": {
@@ -65,7 +91,7 @@
         "operationId": "listPatients",
         "summary": "List Patients",
         "description": "List all patients with optional filtering and pagination",
-        "tags": ["Patients"],
+        "tags": ["Patients (MVP)"],
         "parameters": [
           {
             "name": "q",
@@ -155,7 +181,7 @@
         "operationId": "createPatient",
         "summary": "Create Patient",
         "description": "Create a new patient",
-        "tags": ["Patients"],
+        "tags": ["Patients (MVP)"],
         "requestBody": {
           "description": "Patient data",
           "content": {
@@ -255,7 +281,7 @@
         "operationId": "getPatient",
         "summary": "Get Patient",
         "description": "Get a specific patient by ID",
-        "tags": ["Patients"],
+        "tags": ["Patients (MVP)"],
         "parameters": [
           {
             "name": "id",
@@ -347,7 +373,7 @@
         "operationId": "updatePatient",
         "summary": "Update Patient",
         "description": "Update patient information (partial updates supported)",
-        "tags": ["Patients"],
+        "tags": ["Patients (MVP)"],
         "parameters": [
           {
             "name": "id",
@@ -460,7 +486,7 @@
         "operationId": "deletePatient",
         "summary": "Delete Patient",
         "description": "Delete a patient",
-        "tags": ["Patients"],
+        "tags": ["Patients (MVP)"],
         "parameters": [
           {
             "name": "id",
@@ -485,310 +511,249 @@
         }
       }
     },
-    "/documents": {
-      "post": {
-        "operationId": "createDocument",
-        "summary": "Create Document",
-        "description": "Upload identity or verification document for a patient",
-        "tags": ["Documents"],
-        "requestBody": {
-          "description": "Document data",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DocumentInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Document created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      },
+    "/questionnaires": {
       "get": {
-        "operationId": "listDocuments",
-        "summary": "List Documents",
-        "description": "Get all documents with optional filtering",
-        "tags": ["Documents"],
+        "operationId": "listQuestionnaires",
+        "summary": "List Questionnaires",
+        "description": "Get questionnaires for a program. Use this to retrieve the questionnaire structure before collecting patient responses.",
+        "tags": ["Programs"],
         "parameters": [
           {
-            "name": "patient_id",
+            "name": "program_id",
             "in": "query",
-            "description": "Filter by patient ID",
+            "description": "Filter by program ID (e.g., MWL)",
+            "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "MWL"
             }
           },
           {
             "name": "type",
             "in": "query",
-            "description": "Filter by document type",
+            "description": "Filter by questionnaire type",
+            "required": false,
             "schema": {
               "type": "string",
-              "enum": ["drivers_license", "passport", "state_id", "insurance_card", "other"]
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "description": "Filter by status",
-            "schema": {
-              "type": "string",
-              "enum": ["pending", "verified", "rejected", "expired"]
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Maximum number of results",
-            "schema": {
-              "type": "integer",
-              "default": 50
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "Number of results to skip",
-            "schema": {
-              "type": "integer",
-              "default": 0
+              "enum": ["intake", "refill"],
+              "example": "intake"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "List of documents",
+            "description": "Questionnaires retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DocumentListResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/documents/{id}": {
-      "get": {
-        "operationId": "getDocument",
-        "summary": "Get Document",
-        "description": "Retrieve a specific document",
-        "tags": ["Documents"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Document ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Document retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      },
-      "patch": {
-        "operationId": "updateDocument",
-        "summary": "Update Document",
-        "description": "Update document information including verification status",
-        "tags": ["Documents"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Document ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "description": "Document update data",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DocumentUpdateInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Document updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      },
-      "delete": {
-        "operationId": "deleteDocument",
-        "summary": "Delete Document",
-        "description": "Remove a document",
-        "tags": ["Documents"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Document ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Document deleted successfully"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/patients/{id}/documents": {
-      "get": {
-        "operationId": "listPatientDocuments",
-        "summary": "List Patient Documents (Convenience)",
-        "description": "Shortcut to get all documents for a specific patient. Equivalent to GET /documents?patient_id={id}",
-        "tags": ["Documents"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Patient ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of patient documents",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentListResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/uploads": {
-      "post": {
-        "operationId": "uploadFile",
-        "summary": "Upload File",
-        "description": "Upload a file (document, lab result, etc.) and receive a secure URL. Use this URL when creating documents or submitting other resources that require file attachments.",
-        "tags": ["Uploads"],
-        "requestBody": {
-          "description": "File to upload",
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": ["file"],
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary",
-                    "description": "File to upload (max 10MB)"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": ["document", "lab_result", "prescription", "other"],
-                    "description": "Type of file being uploaded"
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "File uploaded successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UploadResponse"
+                  "$ref": "#/components/schemas/QuestionnaireListResponse"
                 },
                 "examples": {
-                  "success": {
-                    "summary": "File uploaded",
+                  "mwl_intake": {
+                    "summary": "MWL Intake Questionnaire",
                     "value": {
-                      "message": "File uploaded successfully",
+                      "message": "Questionnaires retrieved successfully",
                       "data": {
-                        "file_url": "https://secure.openloop.com/files/abc123def456.pdf",
-                        "file_id": "file_abc123def456",
-                        "file_type": "application/pdf",
-                        "file_size": 245678,
-                        "expires_at": "2025-01-25T14:30:00Z"
+                        "questionnaires": [
+                          {
+                            "id": "q_mwl_intake_v1",
+                            "program_id": "MWL",
+                            "type": "intake",
+                            "title": "Medical Weight Loss - Initial Assessment",
+                            "description": "Initial intake questionnaire for Medical Weight Loss program",
+                            "items": [
+                              {
+                                "link_id": "weight_goal",
+                                "text": "What is your weight loss goal?",
+                                "type": "choice",
+                                "required": true,
+                                "read_only": false,
+                                "answer_options": [
+                                  {
+                                    "value_coding": {
+                                      "code": "lose_1-20_lbs",
+                                      "display": "Lose 1-20 lbs for good"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "lose_21-50_lbs",
+                                      "display": "Lose 21-50 lbs for good"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "lose_over_50_lbs",
+                                      "display": "Lose over 50 lbs for good"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "link_id": "height_feet",
+                                "text": "What is your height (feet)?",
+                                "type": "integer",
+                                "required": true,
+                                "read_only": false
+                              },
+                              {
+                                "link_id": "height_inches",
+                                "text": "What is your height (inches)?",
+                                "type": "integer",
+                                "required": true,
+                                "read_only": false
+                              },
+                              {
+                                "link_id": "weight",
+                                "text": "What is your current weight (lbs)?",
+                                "type": "integer",
+                                "required": true,
+                                "read_only": false
+                              },
+                              {
+                                "link_id": "bmi",
+                                "text": "BMI (calculated)",
+                                "type": "decimal",
+                                "required": true,
+                                "read_only": true
+                              },
+                              {
+                                "link_id": "gender",
+                                "text": "What is your gender?",
+                                "type": "choice",
+                                "required": true,
+                                "read_only": false,
+                                "answer_options": [
+                                  {
+                                    "value_coding": {
+                                      "code": "male",
+                                      "display": "Male"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "female",
+                                      "display": "Female"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "link_id": "date_of_birth",
+                                "text": "What is your date of birth?",
+                                "type": "date",
+                                "required": true,
+                                "read_only": false
+                              },
+                              {
+                                "link_id": "medical_exclusion_criteria",
+                                "text": "Do any of the following apply to you?",
+                                "type": "choice",
+                                "required": true,
+                                "read_only": false,
+                                "answer_options": [
+                                  {
+                                    "value_coding": {
+                                      "code": "none",
+                                      "display": "None of the below"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "pregnant",
+                                      "display": "Currently or possibly pregnant"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "kidney_disease",
+                                      "display": "End-stage kidney disease"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "pancreatitis",
+                                      "display": "History of or current pancreatitis"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "link_id": "medication_allergies",
+                                "text": "Do you have any medication allergies?",
+                                "type": "choice",
+                                "required": true,
+                                "read_only": false,
+                                "answer_options": [
+                                  {
+                                    "value_coding": {
+                                      "code": "yes",
+                                      "display": "Yes"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "no",
+                                      "display": "No"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "link_id": "allergy_medication_description",
+                                "text": "Please provide details including name and reaction",
+                                "type": "string",
+                                "required": true,
+                                "read_only": false,
+                                "enabled_when": {
+                                  "conditions": [
+                                    {
+                                      "question_link_id": "medication_allergies",
+                                      "operator": "=",
+                                      "answer": {
+                                        "value_string": "yes"
+                                      }
+                                    }
+                                  ],
+                                  "behavior": "all"
+                                }
+                              },
+                              {
+                                "link_id": "blood_pressure_range",
+                                "text": "What is your current or average blood pressure range?",
+                                "type": "choice",
+                                "required": true,
+                                "read_only": false,
+                                "answer_options": [
+                                  {
+                                    "value_coding": {
+                                      "code": "normal",
+                                      "display": "<120/80 (Normal)"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "elevated",
+                                      "display": "120-129/<80 (Elevated)"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "high_stage1",
+                                      "display": "130-139/80-89 (High Stage 1)"
+                                    }
+                                  },
+                                  {
+                                    "value_coding": {
+                                      "code": "high_stage2",
+                                      "display": "≥140/90 (High Stage 2)"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
                       }
                     }
                   }
@@ -796,30 +761,8 @@
               }
             }
           },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "413": {
-            "description": "File too large",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "examples": {
-                  "file_too_large": {
-                    "summary": "File Too Large",
-                    "value": {
-                      "error": "ValidationError",
-                      "message": "File size exceeds maximum allowed (10MB)"
-                    }
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -829,7 +772,7 @@
         "operationId": "submitQuestionnaireResponse",
         "summary": "Submit Questionnaire Response",
         "description": "Submit a completed questionnaire response for a patient",
-        "tags": ["Questionnaires"],
+        "tags": ["Questionnaires (MVP)"],
         "requestBody": {
           "description": "Questionnaire response data",
           "content": {
@@ -858,17 +801,38 @@
                         "questionnaire_response": {
                           "id": "qr_abc123",
                           "patient_id": "pat_xyz789",
-                          "questionnaire_id": "q_trt_intake",
-                          "program_id": "prog_trt_001",
+                          "questionnaire_id": "q_mwl_intake_v1",
+                          "program_id": "MWL",
+                          "status": "completed",
                           "answers": {
-                            "main_symptom": "low_energy",
-                            "duration_months": 12,
-                            "history_of_prostate_cancer": false
+                            "weight_goal": "lose_21-50_lbs",
+                            "height_feet": 5,
+                            "height_inches": 5,
+                            "weight": 160,
+                            "gender": "female",
+                            "date_of_birth": "1990-01-01",
+                            "state": "AL",
+                            "main_reason": "health_risks",
+                            "medical_exclusion_criteria": ["none"],
+                            "prior_weight_loss_meds_use": "no",
+                            "any_medications": "no",
+                            "medication_allergies": "no",
+                            "blood_pressure_range": "normal"
                           },
                           "risk_assessment": {
+                            "eligible": true,
                             "risk_level": "low",
                             "requires_sync_consult": false,
+                            "requires_clearance": false,
+                            "exclusion_reason": null,
+                            "sync_visit_reason": null,
                             "next_step": "allow_async_order"
+                          },
+                          "calculated_fields": {
+                            "bmi": 26.62,
+                            "age": 35,
+                            "height": 65,
+                            "comorbidity_required": true
                           },
                           "completed_at": "2025-01-15T14:30:00Z",
                           "created_at": "2025-01-15T14:25:00Z"
@@ -892,7 +856,7 @@
         "operationId": "listQuestionnaireResponses",
         "summary": "List Questionnaire Responses",
         "description": "Retrieve questionnaire responses with optional filtering",
-        "tags": ["Questionnaires"],
+        "tags": ["Questionnaires (MVP)"],
         "parameters": [
           {
             "name": "patient_id",
@@ -959,7 +923,7 @@
         "operationId": "getQuestionnaireResponse",
         "summary": "Get Questionnaire Response",
         "description": "Retrieve a specific questionnaire response",
-        "tags": ["Questionnaires"],
+        "tags": ["Questionnaires (MVP)"],
         "parameters": [
           {
             "name": "id",
@@ -995,28 +959,9 @@
       "get": {
         "operationId": "listPrograms",
         "summary": "List Programs",
-        "description": "Get all available clinical vertical programs (BH, DERM, SLEEP, etc.)",
+        "description": "Get all available programs. Currently supports: Medical Weight Loss (MWL) - GLP-1 medications for weight management.",
         "tags": ["Programs"],
-        "parameters": [
-          {
-            "name": "bundle_code",
-            "in": "query",
-            "description": "Filter by clinical vertical bundle code",
-            "schema": {
-              "type": "string",
-              "enum": ["BH", "DERM", "SLEEP", "SH", "ACUTE", "CCRM", "MWL", "WELLNESS", "SUPPORT", "NOMED"]
-            }
-          },
-          {
-            "name": "gender",
-            "in": "query",
-            "description": "Filter by gender (M, F, ALL)",
-            "schema": {
-              "type": "string",
-              "enum": ["M", "F", "ALL"]
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Programs retrieved successfully",
@@ -1033,22 +978,13 @@
                       "data": {
                         "programs": [
                           {
-                            "id": "ADHD",
-                            "name": "ADHD",
-                            "bundle_code": "BH",
-                            "bundle_name": "Behavioral Health",
-                            "offering_name": "ADHD",
-                            "age_range": null,
-                            "gender": null
-                          },
-                          {
-                            "id": "MHL",
-                            "name": "Men's hair loss",
-                            "bundle_code": "DERM",
-                            "bundle_name": "Hair & Dermatologic Health",
-                            "offering_name": "Men's hair loss",
-                            "age_range": null,
-                            "gender": "M"
+                            "id": "MWL",
+                            "name": "Medical Weight Loss",
+                            "description": "Personalized weight loss program with GLP-1 medications (Semaglutide and Tirzepatide)",
+                            "eligibility": {
+                              "age_range": "18-65",
+                              "gender": null
+                            }
                           }
                         ]
                       }
@@ -1068,7 +1004,7 @@
       "get": {
         "operationId": "getProgram",
         "summary": "Get Program",
-        "description": "Retrieve details of a specific program by its abbreviation ID",
+        "description": "Retrieve program details. MVP supports: MWL (Medical Weight Loss)",
         "tags": ["Programs"],
         "parameters": [
           {
@@ -1096,114 +1032,17 @@
                       "message": "Program retrieved successfully",
                       "data": {
                         "program": {
-                          "id": "ADHD",
-                          "name": "ADHD",
-                          "bundle_code": "BH",
-                          "bundle_name": "Behavioral Health",
-                          "offering_name": "ADHD",
-                          "age_range": null,
-                          "gender": null
+                          "id": "MWL",
+                          "name": "Medical Weight Loss",
+                          "description": "Personalized weight loss program with GLP-1 medications (Semaglutide and Tirzepatide)",
+                          "eligibility": {
+                            "age_range": "18-65",
+                            "gender": null
+                          }
                         }
                       }
                     }
                   }
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/programs/{programId}/questionnaires": {
-      "get": {
-        "operationId": "getProgramQuestionnaire",
-        "summary": "Get Program Questionnaire",
-        "description": "Retrieve the questionnaire required for a specific program",
-        "tags": ["Programs"],
-        "parameters": [
-          {
-            "name": "programId",
-            "in": "path",
-            "description": "Program ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Questionnaire retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QuestionnaireResponse"
-                },
-                "examples": {
-                  "success": {
-                    "summary": "Questionnaire example",
-                    "value": {
-                      "message": "Questionnaire retrieved successfully",
-                      "data": {
-                        "questionnaire": {
-                          "id": "quest_1a2b3c4d",
-                          "program_id": "prog_123",
-                          "title": "Weight Loss Program Assessment",
-                          "questions": [
-                            {
-                              "id": "q1",
-                              "text": "What is your current weight?",
-                              "type": "number",
-                              "required": true
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/programs/{programId}/products": {
-      "get": {
-        "operationId": "getProgramProducts",
-        "summary": "Get Program Products",
-        "description": "Get all products associated with a specific program",
-        "tags": ["Programs"],
-        "parameters": [
-          {
-            "name": "programId",
-            "in": "path",
-            "description": "Program abbreviation (e.g., ADHD, MHL, ED)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Products retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductListResponse"
                 }
               }
             }
@@ -1222,7 +1061,7 @@
         "operationId": "listProducts",
         "summary": "List Products",
         "description": "Get all available products with optional filtering by program, payment provider, or client",
-        "tags": ["Products"],
+        "tags": ["Products (MVP)"],
         "parameters": [
           {
             "name": "program_id",
@@ -1284,21 +1123,50 @@
                       "data": {
                         "products": [
                           {
-                            "product_id": "openloop_adhd_monthly_001",
-                            "payment_provider_product_id": "prod_StripeABC123XYZ",
-                            "payment_provider_price_id": "price_1234567890abcdef",
-                            "product_name": "ADHD Treatment - Monthly Subscription",
-                            "product_description": "Comprehensive ADHD treatment with medication and monthly provider consultations",
-                            "price": 299.00,
-                            "price_currency": "USD",
-                            "payment_provider": "stripe",
-                            "program_id": "ADHD",
-                            "billing_frequency": "monthly",
+                            "id": "sem_w12",
+                            "name": "Semaglutide Injection",
+                            "description": "12-week supply of injectable Semaglutide for weight management",
+                            "program_id": "MWL",
+                            "price": 399.00,
+                            "currency": "USD",
+                            "subscription": {
+                              "is_recurring": true,
+                              "interval_days": 84,
+                              "interval_label": "every 12 weeks"
+                            },
+                            "active": true
+                          },
+                          {
+                            "id": "osg_w04",
+                            "name": "Semaglutide Oral",
+                            "description": "4-week supply of oral Semaglutide for weight management",
+                            "program_id": "MWL",
+                            "price": 149.00,
+                            "currency": "USD",
+                            "subscription": {
+                              "is_recurring": true,
+                              "interval_days": 28,
+                              "interval_label": "every 4 weeks"
+                            },
+                            "active": true
+                          },
+                          {
+                            "id": "ter_w24",
+                            "name": "Tirzepatide Injection",
+                            "description": "24-week supply of injectable Tirzepatide for weight management",
+                            "program_id": "MWL",
+                            "price": 899.00,
+                            "currency": "USD",
+                            "subscription": {
+                              "is_recurring": true,
+                              "interval_days": 168,
+                              "interval_label": "every 24 weeks"
+                            },
                             "active": true
                           }
                         ],
                         "pagination": {
-                          "total": 1,
+                          "total": 16,
                           "limit": 50,
                           "offset": 0,
                           "has_more": false
@@ -1316,62 +1184,12 @@
         }
       }
     },
-    "/funnel-responses": {
-      "post": {
-        "operationId": "createFunnelResponse",
-        "summary": "Create Funnel Response",
-        "description": "Create a patient, questionnaire response, and invoices in one operation",
-        "tags": ["Funnel Responses"],
-        "requestBody": {
-          "description": "Funnel response data including patient info and questionnaire answers",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FunnelResponseInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Funnel response created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FunnelResponseOutput"
-                },
-                "examples": {
-                  "success": {
-                    "summary": "Funnel response created",
-                    "value": {
-                      "message": "Funnel response created successfully",
-                      "data": {
-                        "patient_id": "pat_1a2b3c4d",
-                        "questionnaire_response_id": "qr_xyz789",
-                        "invoice_ids": ["inv_001", "inv_002"]
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
     "/orders": {
       "get": {
         "operationId": "listOrders",
         "summary": "List Orders",
         "description": "Retrieve all orders with optional filtering",
-        "tags": ["Orders"],
+        "tags": ["Orders (MVP)"],
         "parameters": [
           {
             "name": "patient_id",
@@ -1435,9 +1253,10 @@
                           {
                             "id": "ord_abc123",
                             "patient_id": "pat_xyz789",
-                            "product_id": "prod_def456",
+                            "program_id": "MWL",
+                            "product_id": "sem_w12",
                             "status": "confirmed",
-                            "total_amount": 29900,
+                            "total_amount": 39900,
                             "created_at": "2024-12-02T10:30:00Z"
                           }
                         ],
@@ -1463,7 +1282,7 @@
         "operationId": "createOrder",
         "summary": "Create Order",
         "description": "Create a new order based on patient, product, and questionnaire",
-        "tags": ["Orders"],
+        "tags": ["Orders (MVP)"],
         "requestBody": {
           "description": "Order data",
           "content": {
@@ -1492,9 +1311,10 @@
                         "order": {
                           "id": "ord_abc123",
                           "patient_id": "pat_xyz789",
-                          "product_id": "prod_def456",
+                          "program_id": "MWL",
+                          "product_id": "sem_w12",
                           "status": "pending",
-                          "total_amount": 29900,
+                          "total_amount": 39900,
                           "created_at": "2024-12-02T10:30:00Z"
                         }
                       }
@@ -1518,7 +1338,7 @@
         "operationId": "getOrder",
         "summary": "Get Order",
         "description": "Retrieve a specific order by ID",
-        "tags": ["Orders"],
+        "tags": ["Orders (MVP)"],
         "parameters": [
           {
             "name": "id",
@@ -1553,7 +1373,7 @@
         "operationId": "updateOrder",
         "summary": "Update Order",
         "description": "Update an existing order including fulfillment, review, and other fields",
-        "tags": ["Orders"],
+        "tags": ["Orders (MVP)"],
         "parameters": [
           {
             "name": "id",
@@ -1602,7 +1422,7 @@
         "operationId": "deleteOrder",
         "summary": "Delete Order",
         "description": "Delete an order by ID",
-        "tags": ["Orders"],
+        "tags": ["Orders (MVP)"],
         "parameters": [
           {
             "name": "id",
@@ -1617,232 +1437,6 @@
         "responses": {
           "204": {
             "description": "Order deleted successfully"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/orders/{id}/labs": {
-      "get": {
-        "operationId": "getOrderLabs",
-        "summary": "Get Order Labs (Convenience)",
-        "description": "Shortcut to get all lab orders for a specific order. Equivalent to GET /lab-orders?order_id={id}",
-        "tags": ["Labs"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Order ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lab orders retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LabOrderListResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/lab-orders": {
-      "post": {
-        "operationId": "createLabOrder",
-        "summary": "Create Lab Order",
-        "description": "Create a new lab order for a patient",
-        "tags": ["Labs"],
-        "requestBody": {
-          "description": "Lab order data",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LabOrderInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Lab order created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LabOrderResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      },
-      "get": {
-        "operationId": "listLabOrders",
-        "summary": "List Lab Orders",
-        "description": "Retrieve all lab orders with optional filtering",
-        "tags": ["Labs"],
-        "parameters": [
-          {
-            "name": "patient_id",
-            "in": "query",
-            "description": "Filter by patient ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "order_id",
-            "in": "query",
-            "description": "Filter by order ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "description": "Filter by lab order status",
-            "schema": {
-              "type": "string",
-              "enum": ["ordered", "received", "completed", "reviewed", "cancelled"]
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Maximum number of results",
-            "schema": {
-              "type": "integer",
-              "default": 50
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "Number of results to skip",
-            "schema": {
-              "type": "integer",
-              "default": 0
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lab orders retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LabOrderListResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      }
-    },
-    "/lab-orders/{id}": {
-      "get": {
-        "operationId": "getLabOrder",
-        "summary": "Get Lab Order",
-        "description": "Retrieve a specific lab order by ID",
-        "tags": ["Labs"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Lab Order ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lab order retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LabOrderResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFoundError"
-          },
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          }
-        }
-      },
-      "patch": {
-        "operationId": "updateLabOrder",
-        "summary": "Update Lab Order",
-        "description": "Update lab order including status, results, and other fields",
-        "tags": ["Labs"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Lab Order ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "description": "Lab order update data",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LabOrderUpdateInput"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Lab order updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LabOrderResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
           },
           "404": {
             "$ref": "#/components/responses/NotFoundError"
@@ -2383,49 +1977,51 @@
       },
       "Program": {
         "type": "object",
-        "required": ["id", "name", "bundle_code", "bundle_name", "offering_name"],
+        "required": ["id", "name", "description"],
         "properties": {
           "id": {
             "type": "string",
-            "description": "Program abbreviation ID (e.g., ADHD, MHL, ED). This is the unique identifier used across the API."
+            "description": "Program unique identifier (use this when filtering products or creating orders)",
+            "example": "MWL"
           },
           "name": {
             "type": "string",
-            "description": "Program display name"
+            "description": "Program display name",
+            "example": "Medical Weight Loss"
           },
-          "bundle_code": {
+          "description": {
             "type": "string",
-            "enum": ["BH", "DERM", "SLEEP", "SH", "ACUTE", "CCRM", "MWL", "WELLNESS", "SUPPORT", "NOMED"],
-            "description": "Clinical vertical bundle code (e.g., BH for Behavioral Health)"
+            "description": "Program description",
+            "example": "Personalized weight loss program with GLP-1 medications (Semaglutide and Tirzepatide)"
           },
-          "bundle_name": {
-            "type": "string",
-            "description": "Full bundle name for display (e.g., 'Behavioral Health', 'Hair & Dermatologic Health')"
-          },
-          "offering_name": {
-            "type": "string",
-            "description": "Clinical vertical offering name for display"
-          },
-          "age_range": {
-            "type": "string",
-            "nullable": true,
-            "description": "Target age range if applicable (e.g., '18-65'). Null means no age restriction."
-          },
-          "gender": {
-            "type": "string",
-            "nullable": true,
-            "enum": ["M", "F", "ALL", null],
-            "description": "Target gender restriction: M (Male only), F (Female only), ALL (any gender), null (no restriction)"
+          "eligibility": {
+            "type": "object",
+            "description": "Program eligibility criteria",
+            "properties": {
+              "age_range": {
+                "type": "string",
+                "nullable": true,
+                "description": "Target age range (e.g., '18-65'). Null means no age restriction.",
+                "example": "18-65"
+              },
+              "gender": {
+                "type": "string",
+                "nullable": true,
+                "enum": ["M", "F", null],
+                "description": "Gender restriction: M (Male only), F (Female only), null (no restriction)",
+                "example": null
+              }
+            }
           }
         },
         "example": {
-          "id": "ADHD",
-          "name": "ADHD",
-          "bundle_code": "BH",
-          "bundle_name": "Behavioral Health",
-          "offering_name": "ADHD",
-          "age_range": null,
-          "gender": null
+          "id": "MWL",
+          "name": "Medical Weight Loss",
+          "description": "Personalized weight loss program with GLP-1 medications (Semaglutide and Tirzepatide)",
+          "eligibility": {
+            "age_range": "18-65",
+            "gender": null
+          }
         }
       },
       "ProgramListResponse": {
@@ -2470,62 +2066,156 @@
           }
         }
       },
-      "Question": {
+      "QuestionnaireItem": {
         "type": "object",
-        "required": ["id", "text", "type", "required"],
+        "required": ["link_id", "text", "type", "required", "read_only"],
         "properties": {
-          "id": {
+          "link_id": {
             "type": "string",
-            "description": "Question ID"
+            "description": "Unique identifier for this question",
+            "example": "weight_goal"
           },
           "text": {
             "type": "string",
-            "description": "Question text"
+            "description": "Question text displayed to user",
+            "example": "What is your weight loss goal?"
           },
           "type": {
             "type": "string",
-            "enum": ["text", "number", "select", "multiselect", "date"],
+            "enum": ["choice", "string", "decimal", "integer", "date", "boolean"],
             "description": "Question type"
           },
           "required": {
             "type": "boolean",
             "description": "Whether the question is required"
           },
-          "options": {
+          "read_only": {
+            "type": "boolean",
+            "description": "If true, this field is calculated internally and should not be submitted by the user"
+          },
+          "answer_options": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/AnswerOption"
             },
-            "description": "Available options for select/multiselect questions"
+            "description": "Available options for choice questions"
+          },
+          "enabled_when": {
+            "$ref": "#/components/schemas/EnabledWhen"
+          }
+        }
+      },
+      "AnswerOption": {
+        "type": "object",
+        "properties": {
+          "value_coding": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Option code",
+                "example": "lose_21-50_lbs"
+              },
+              "display": {
+                "type": "string",
+                "description": "Option display text",
+                "example": "Lose 21-50 lbs for good"
+              },
+              "olh_concept_id": {
+                "type": "string",
+                "description": "Internal concept ID"
+              }
+            }
+          }
+        }
+      },
+      "EnabledWhen": {
+        "type": "object",
+        "description": "Conditional logic for displaying questions",
+        "properties": {
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question_link_id": {
+                  "type": "string",
+                  "description": "The question this condition depends on"
+                },
+                "operator": {
+                  "type": "string",
+                  "enum": ["=", "!=", ">", "<", ">=", "<="],
+                  "description": "Comparison operator"
+                },
+                "answer": {
+                  "type": "object",
+                  "description": "The answer value to compare against"
+                }
+              }
+            }
+          },
+          "behavior": {
+            "type": "string",
+            "enum": ["all", "any"],
+            "description": "Whether all or any conditions must be met"
           }
         }
       },
       "Questionnaire": {
         "type": "object",
-        "required": ["id", "program_id", "title", "questions"],
+        "required": ["id", "program_id", "type", "title", "items"],
         "properties": {
           "id": {
             "type": "string",
-            "description": "Questionnaire ID"
+            "description": "Questionnaire unique identifier",
+            "example": "q_mwl_intake_v1"
           },
           "program_id": {
             "type": "string",
-            "description": "Associated program ID"
+            "description": "Associated program ID",
+            "example": "MWL"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["intake", "refill"],
+            "description": "Questionnaire type"
           },
           "title": {
             "type": "string",
-            "description": "Questionnaire title"
+            "description": "Questionnaire title",
+            "example": "Medical Weight Loss - Initial Assessment"
           },
           "description": {
             "type": "string",
             "description": "Questionnaire description"
           },
-          "questions": {
+          "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Question"
+              "$ref": "#/components/schemas/QuestionnaireItem"
             },
-            "description": "List of questions"
+            "description": "List of questionnaire items (questions)"
+          }
+        }
+      },
+      "QuestionnaireListResponse": {
+        "type": "object",
+        "required": ["message", "data"],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "required": ["questionnaires"],
+            "properties": {
+              "questionnaires": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Questionnaire"
+                }
+              }
+            }
           }
         }
       },
@@ -2550,68 +2240,80 @@
       },
       "Product": {
         "type": "object",
-        "required": ["product_id", "product_name", "price", "price_currency", "payment_provider"],
+        "required": ["id", "name", "description", "price", "currency", "program_id"],
         "properties": {
-          "product_id": {
+          "id": {
             "type": "string",
-            "description": "Internal OpenLoop product identifier (used for orders and tracking)"
+            "description": "Unique product identifier (use this when creating orders)",
+            "example": "sem_w12"
           },
-          "payment_provider_product_id": {
+          "name": {
             "type": "string",
-            "description": "Product ID in the payment provider system (e.g., Stripe product ID: prod_xxx, Chargebee plan ID: plan_xxx)"
+            "description": "Product display name",
+            "example": "Semaglutide Injection"
           },
-          "payment_provider_price_id": {
+          "description": {
             "type": "string",
-            "description": "Price ID in the payment provider system (e.g., Stripe price ID: price_xxx)"
-          },
-          "product_name": {
-            "type": "string",
-            "description": "Product display name"
-          },
-          "product_description": {
-            "type": "string",
-            "description": "Product description for display"
-          },
-          "price": {
-            "type": "number",
-            "description": "Price amount (decimal format, e.g., 299.00)"
-          },
-          "price_currency": {
-            "type": "string",
-            "description": "Currency code (ISO 4217)",
-            "default": "USD"
-          },
-          "payment_provider": {
-            "type": "string",
-            "enum": ["stripe", "chargebee"],
-            "description": "Payment provider system used for billing"
+            "description": "Product description",
+            "example": "12-week supply of injectable Semaglutide for weight management"
           },
           "program_id": {
             "type": "string",
-            "description": "Associated program abbreviation (e.g., ADHD, MHL, ED)"
+            "description": "Associated program ID",
+            "example": "MWL"
           },
-          "billing_frequency": {
+          "price": {
+            "type": "number",
+            "format": "float",
+            "description": "Product price",
+            "example": 399.00
+          },
+          "currency": {
             "type": "string",
-            "enum": ["one-time", "monthly", "quarterly", "annually"],
-            "description": "Billing frequency for recurring charges"
+            "description": "Currency code (ISO 4217)",
+            "default": "USD",
+            "example": "USD"
+          },
+          "subscription": {
+            "type": "object",
+            "description": "Subscription details (if recurring)",
+            "properties": {
+              "is_recurring": {
+                "type": "boolean",
+                "description": "Whether this is a recurring subscription",
+                "example": true
+              },
+              "interval_days": {
+                "type": "integer",
+                "description": "Billing interval in days",
+                "example": 84
+              },
+              "interval_label": {
+                "type": "string",
+                "description": "Human-readable interval description",
+                "example": "every 12 weeks"
+              }
+            }
           },
           "active": {
             "type": "boolean",
-            "description": "Whether the product is currently active and available for purchase",
-            "default": true
+            "description": "Whether the product is available for purchase",
+            "default": true,
+            "example": true
           }
         },
         "example": {
-          "product_id": "openloop_adhd_monthly_001",
-          "payment_provider_product_id": "prod_StripeABC123XYZ",
-          "payment_provider_price_id": "price_1234567890abcdef",
-          "product_name": "ADHD Treatment - Monthly Subscription",
-          "product_description": "Comprehensive ADHD treatment with medication and monthly provider consultations",
-          "price": 299.00,
-          "price_currency": "USD",
-          "payment_provider": "stripe",
-          "program_id": "ADHD",
-          "billing_frequency": "monthly",
+          "id": "sem_w12",
+          "name": "Semaglutide Injection",
+          "description": "12-week supply of injectable Semaglutide for weight management",
+          "program_id": "MWL",
+          "price": 399.00,
+          "currency": "USD",
+          "subscription": {
+            "is_recurring": true,
+            "interval_days": 84,
+            "interval_label": "every 12 weeks"
+          },
           "active": true
         }
       },
@@ -2665,10 +2367,6 @@
           "product_id": {
             "type": "string",
             "description": "Product ID for the order"
-          },
-          "payment_method_id": {
-            "type": "string",
-            "description": "Payment method ID (e.g., Stripe payment method)"
           }
         },
         "example": {
@@ -2697,8 +2395,7 @@
               "q2": "Yes"
             }
           },
-          "product_id": "prod_abc123",
-          "payment_method_id": "pm_1234567890"
+          "product_id": "sem_w12"
         }
       },
       "FunnelResponseOutput": {
@@ -2962,10 +2659,10 @@
         },
         "example": {
           "id": "ord_7b12f9c8-5340-4b0f-bef3",
-          "organization_id": "org_trt_clinic_001",
+          "organization_id": "org_mwl_partner_001",
           "patient_id": "pat_9f4c2b1e-8c3d-4b0f",
-          "program_id": "prog_trt_001",
-          "product_id": "prod_trt_monthly_0100",
+          "program_id": "MWL",
+          "product_id": "sem_w12",
           "questionnaire_response_id": "qr_abc123",
           "status": "pending_review",
           "payment_status": "paid",
@@ -3041,10 +2738,6 @@
             "type": "string",
             "description": "Questionnaire response ID"
           },
-          "payment_method_id": {
-            "type": "string",
-            "description": "Payment method ID (e.g., Stripe payment method)"
-          },
           "metadata": {
             "type": "object",
             "additionalProperties": true,
@@ -3053,10 +2746,9 @@
         },
         "example": {
           "patient_id": "pat_xyz789",
-          "program_id": "prog_trt_001",
-          "product_id": "prod_trt_monthly_0100",
+          "program_id": "MWL",
+          "product_id": "sem_w12",
           "questionnaire_response_id": "qr_ghi789",
-          "payment_method_id": "pm_stripe_abc123",
           "metadata": {
             "campaign": "new_year_promo_2025",
             "utm_source": "partner_referral"
@@ -3693,53 +3385,6 @@
           }
         }
       },
-      "UploadResponse": {
-        "type": "object",
-        "required": ["message", "data"],
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "Response message"
-          },
-          "data": {
-            "type": "object",
-            "required": ["file_url", "file_id", "file_type"],
-            "properties": {
-              "file_url": {
-                "type": "string",
-                "description": "Secure URL to access the uploaded file"
-              },
-              "file_id": {
-                "type": "string",
-                "description": "Unique file identifier"
-              },
-              "file_type": {
-                "type": "string",
-                "description": "MIME type of the uploaded file"
-              },
-              "file_size": {
-                "type": "integer",
-                "description": "File size in bytes"
-              },
-              "expires_at": {
-                "type": "string",
-                "format": "date-time",
-                "description": "URL expiration timestamp (null if permanent)"
-              }
-            }
-          }
-        },
-        "example": {
-          "message": "File uploaded successfully",
-          "data": {
-            "file_url": "https://secure.openloop.com/files/abc123def456.pdf",
-            "file_id": "file_abc123def456",
-            "file_type": "application/pdf",
-            "file_size": 245678,
-            "expires_at": null
-          }
-        }
-      },
       "QuestionnaireResponseSubmitted": {
         "type": "object",
         "required": ["id", "patient_id", "questionnaire_id", "answers"],
@@ -3765,9 +3410,19 @@
             "additionalProperties": true,
             "description": "Question answers (question_id: answer)"
           },
+          "status": {
+            "type": "string",
+            "enum": ["completed", "in_progress"],
+            "description": "Response status"
+          },
           "risk_assessment": {
             "type": "object",
+            "description": "Automated risk assessment based on responses (calculated internally)",
             "properties": {
+              "eligible": {
+                "type": "boolean",
+                "description": "Whether patient is eligible for the program"
+              },
               "risk_level": {
                 "type": "string",
                 "enum": ["low", "medium", "high"],
@@ -3775,18 +3430,49 @@
               },
               "requires_sync_consult": {
                 "type": "boolean",
-                "description": "Whether synchronous consultation is required"
+                "description": "Whether synchronous consultation with provider is required"
+              },
+              "requires_clearance": {
+                "type": "boolean",
+                "description": "Whether clearance from PCP or specialist is required"
+              },
+              "exclusion_reason": {
+                "type": "string",
+                "nullable": true,
+                "description": "Reason for exclusion if not eligible (e.g., 'medical_exclusion_criteria', 'bmi', etc.)"
+              },
+              "sync_visit_reason": {
+                "type": "string",
+                "nullable": true,
+                "description": "Reason sync consult is needed (e.g., 'bmi', 'other_exclusion_conditions')"
               },
               "next_step": {
                 "type": "string",
-                "description": "Recommended next step"
+                "enum": ["allow_async_order", "require_sync_consult", "require_clearance", "exclude"],
+                "description": "Recommended next step in the workflow"
+              }
+            }
+          },
+          "calculated_fields": {
+            "type": "object",
+            "description": "Fields calculated by the backend (not submitted by user)",
+            "properties": {
+              "bmi": {
+                "type": "number",
+                "format": "float",
+                "description": "Calculated Body Mass Index"
               },
-              "flags": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "description": "Clinical flags raised by responses"
+              "age": {
+                "type": "integer",
+                "description": "Calculated age from date of birth"
+              },
+              "height": {
+                "type": "integer",
+                "description": "Calculated total height in inches"
+              },
+              "comorbidity_required": {
+                "type": "boolean",
+                "description": "Whether comorbidity is required for eligibility (BMI 25-26.99)"
               }
             }
           },
@@ -3818,19 +3504,38 @@
         "example": {
           "id": "qr_abc123",
           "patient_id": "pat_xyz789",
-          "questionnaire_id": "q_trt_intake",
-          "program_id": "prog_trt_001",
+          "questionnaire_id": "q_mwl_intake_v1",
+          "program_id": "MWL",
+          "status": "completed",
           "answers": {
-            "main_symptom": "low_energy",
-            "duration_months": 12,
-            "history_of_prostate_cancer": false,
-            "current_medications": ["Lisinopril", "Metformin"]
+            "weight_goal": "lose_21-50_lbs",
+            "height_feet": 5,
+            "height_inches": 5,
+            "weight": 160,
+            "gender": "female",
+            "date_of_birth": "1990-01-01",
+            "state": "AL",
+            "main_reason": "health_risks",
+            "medical_exclusion_criteria": ["none"],
+            "prior_weight_loss_meds_use": "no",
+            "any_medications": "no",
+            "medication_allergies": "no",
+            "blood_pressure_range": "normal"
           },
           "risk_assessment": {
+            "eligible": true,
             "risk_level": "low",
             "requires_sync_consult": false,
-            "next_step": "allow_async_order",
-            "flags": []
+            "requires_clearance": false,
+            "exclusion_reason": null,
+            "sync_visit_reason": null,
+            "next_step": "allow_async_order"
+          },
+          "calculated_fields": {
+            "bmi": 26.62,
+            "age": 35,
+            "height": 65,
+            "comorbidity_required": true
           },
           "completed_at": "2025-01-15T14:30:00Z",
           "reviewed_by": null,
@@ -3858,19 +3563,27 @@
           "answers": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Question answers as key-value pairs (question_id: answer)"
+            "description": "Question answers as key-value pairs (link_id: answer_value). Only submit answers for questions with read_only=false. Do NOT submit calculated fields (read_only=true) like bmi, age, height - these are computed by the backend."
           }
         },
         "example": {
           "patient_id": "pat_xyz789",
-          "questionnaire_id": "q_trt_intake",
-          "program_id": "prog_trt_001",
+          "questionnaire_id": "q_mwl_intake_v1",
+          "program_id": "MWL",
           "answers": {
-            "main_symptom": "low_energy",
-            "duration_months": 12,
-            "history_of_prostate_cancer": false,
-            "current_medications": ["Lisinopril", "Metformin"],
-            "previous_trt_experience": false
+            "weight_goal": "lose_21-50_lbs",
+            "height_feet": 5,
+            "height_inches": 5,
+            "weight": 160,
+            "gender": "female",
+            "date_of_birth": "1990-01-01",
+            "state": "AL",
+            "main_reason": "health_risks",
+            "medical_exclusion_criteria": ["none"],
+            "prior_weight_loss_meds_use": "no",
+            "any_medications": "no",
+            "medication_allergies": "no",
+            "blood_pressure_range": "normal"
           }
         }
       },

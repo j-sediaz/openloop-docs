@@ -37,7 +37,8 @@
           {
             "group": "Guides",
             "pages": [
-              "api-reference/programs-guide"
+              "api-reference/programs-guide",
+              "api-reference/mwl-complete-guide"
             ]
           }
         ]

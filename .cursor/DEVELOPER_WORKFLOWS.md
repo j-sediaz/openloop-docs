@@ -313,8 +313,7 @@ Content-Type: application/json
   "patient_id": "pat_xyz789",
   "program_id": "prog_trt_001",
   "product_id": "prod_trt_monthly_0100",
-  "questionnaire_response_id": "qr_abc123",  // ← Use the ID from step 3
-  "payment_method_id": "pm_stripe_abc123"
+  "questionnaire_response_id": "qr_abc123"  // ← Use the ID from step 3
 }
 ```
 
@@ -394,8 +393,7 @@ async function submitQuestionnaireAndCreateOrder(patientId, programId, answers, 
         patient_id: patientId,
         program_id: programId,
         product_id: productId,
-        questionnaire_response_id: questionnaireResponseId,
-        payment_method_id: paymentMethodId
+        questionnaire_response_id: questionnaireResponseId
       })
     }
   );
@@ -479,8 +477,7 @@ POST /orders
   "patient_id": "pat_123",
   "program_id": "prog_trt_001",
   "product_id": "prod_trt_monthly_0100",
-  "questionnaire_response_id": "qr_789",
-  "payment_method_id": "pm_stripe_abc123"
+  "questionnaire_response_id": "qr_789"
 }
 # Response: order_id = "ord_001", status = "pending_payment"
 

@@ -1,0 +1,709 @@
+---
+title: "Medical Weight Loss - Complete Integration Guide"
+description: "Step-by-step guide to integrate Medical Weight Loss program with all required questions and examples"
+---
+
+This guide walks you through the **complete workflow** for integrating the Medical Weight Loss program, from retrieving the questionnaire to creating an order.
+
+---
+
+## 🎯 Complete Workflow Overview
+
+<Steps>
+  <Step title="Create Patient">
+    First, create a patient record in the system
+    
+    ```bash
+    POST /patients
+    ```
+  </Step>
+
+  <Step title="Get Programs">
+    Retrieve available programs to confirm MWL is active
+    
+    ```bash
+    GET /programs
+    ```
+  </Step>
+
+  <Step title="Get Questionnaire">
+    Fetch the MWL intake questionnaire structure
+    
+    ```bash
+    GET /questionnaires?program_id=MWL&type=intake
+    ```
+  </Step>
+
+  <Step title="Display Questions">
+    Render all questions to the patient. Handle conditional logic for `enabled_when` fields to show/hide questions dynamically.
+  </Step>
+
+  <Step title="Submit Responses">
+    Send patient answers to the API (requires `patient_id` from Step 1)
+    
+    ```bash
+    POST /questionnaire-responses
+    ```
+  </Step>
+
+  <Step title="Check Eligibility">
+    Review `risk_assessment.next_step`:
+    - ✅ `allow_async_order` → Proceed to products
+    - ⚠️ `require_sync_consult` → Schedule consultation
+    - ⚠️ `require_clearance` → Request medical clearance
+    - ❌ `exclude` → Show ineligibility reason
+  </Step>
+
+  <Step title="List Products">
+    If eligible, retrieve available MWL products
+    
+    ```bash
+    GET /products?program_id=MWL
+    ```
+  </Step>
+
+  <Step title="Create Order">
+    Submit order with selected product
+    
+    ```bash
+    POST /orders
+    ```
+  </Step>
+</Steps>
+
+---
+
+## Step 0: Create Patient Record
+
+Before starting the questionnaire, create a patient record:
+
+```bash
+POST /patients
+```
+
+**Request Body:**
+```json
+{
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "email": "jane.doe@example.com",
+  "phone_number": "+1234567890",
+  "date_of_birth": "1990-01-01"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Patient created successfully",
+  "data": {
+    "patient": {
+      "id": "pat_123",
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "email": "jane.doe@example.com",
+      "phone_number": "+1234567890",
+      "date_of_birth": "1990-01-01",
+      "created_at": "2024-12-19T10:00:00Z"
+    }
+  }
+}
+```
+
+<Info>
+  **Save the `patient_id`** - you'll need it for submitting questionnaire responses and creating orders.
+</Info>
+
+---
+
+## Step 1: Get Available Programs
+
+First, check which programs are available:
+
+```bash
+GET /programs
+```
+
+**Response:**
+```json
+{
+  "message": "Programs retrieved successfully",
+  "data": {
+    "programs": [
+      {
+        "id": "MWL",
+        "name": "Medical Weight Loss",
+        "description": "Personalized weight loss program with GLP-1 medications (Semaglutide and Tirzepatide)",
+        "eligibility": {
+          "age_range": "18-65",
+          "gender": null
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
+## Step 2: Get MWL Questionnaire Structure
+
+Retrieve the questionnaire structure to know what questions to ask:
+
+```bash
+GET /questionnaires?program_id=MWL&type=intake
+```
+
+The questionnaire contains **all questions** you need to display to the patient.
+
+### Key Fields in Each Question:
+
+| Field | Description |
+|-------|-------------|
+| `link_id` | Unique question identifier (use as key when submitting answers) |
+| `text` | Question text to display to the patient |
+| `type` | Question type: `choice`, `string`, `integer`, `decimal`, `date`, `boolean` |
+| `required` | Whether the question must be answered |
+| `answer_options` | Available choices for `choice` type questions |
+| `enabled_when` | Conditional logic - only show question if condition is met |
+
+---
+
+## Step 3: All MWL Intake Questions
+
+### Complete Question List
+
+Here are **all questions** in the MWL intake questionnaire:
+
+#### **Question 1: Weight Loss Goal**
+```json
+{
+  "link_id": "weight_goal",
+  "text": "What is your weight loss goal?",
+  "type": "choice",
+  "required": true,
+  "answer_options": [
+    { "code": "lose_1-20_lbs", "display": "Lose 1-20 lbs for good" },
+    { "code": "lose_21-50_lbs", "display": "Lose 21-50 lbs for good" },
+    { "code": "lose_over_50_lbs", "display": "Lose over 50 lbs for good" },
+    { "code": "maintain", "display": "Maintain my weight and get fit" },
+    { "code": "have_not_decided", "display": "Haven't decided" }
+  ]
+}
+```
+
+#### **Question 2-4: Height and Weight**
+```json
+{
+  "link_id": "height_feet",
+  "text": "What is your height (feet)?",
+  "type": "integer",
+  "required": true
+}
+
+{
+  "link_id": "height_inches",
+  "text": "What is your height (inches)?",
+  "type": "integer",
+  "required": true
+}
+
+{
+  "link_id": "weight",
+  "text": "What is your current weight (lbs)?",
+  "type": "integer",
+  "required": true
+}
+```
+
+#### **Question 5: Gender**
+```json
+{
+  "link_id": "gender",
+  "text": "What is your gender?",
+  "type": "choice",
+  "required": true,
+  "answer_options": [
+    { "code": "male", "display": "Male" },
+    { "code": "female", "display": "Female" }
+  ]
+}
+```
+
+#### **Question 6: Date of Birth**
+```json
+{
+  "link_id": "date_of_birth",
+  "text": "What is your date of birth?",
+  "type": "date",
+  "required": true
+}
+```
+
+#### **Question 7: Location**
+```json
+{
+  "link_id": "state",
+  "text": "Where are you currently located?",
+  "type": "string",
+  "required": true
+}
+```
+
+#### **Question 8: Main Reason**
+```json
+{
+  "link_id": "main_reason",
+  "text": "What are the main reasons you want to make a change?",
+  "type": "choice",
+  "required": true,
+  "answer_options": [
+    { "code": "life_expectancy", "display": "I want to increase my life expectancy" },
+    { "code": "appearance", "display": "I want to improve my appearance" },
+    { "code": "health_risks", "display": "I want to minimize my health risks" },
+    { "code": "mental_health", "display": "I want to boost my mental health" }
+  ]
+}
+```
+
+#### **Question 9: Medical Exclusion Criteria (CRITICAL)**
+```json
+{
+  "link_id": "medical_exclusion_criteria",
+  "text": "Do any of the following apply to you?",
+  "type": "choice",
+  "required": true,
+  "answer_options": [
+    { "code": "none", "display": "None of the below" },
+    { "code": "pregnant", "display": "Currently or possibly pregnant, or actively trying to become pregnant" },
+    { "code": "breastfeeding", "display": "Breastfeeding or bottle-feeding with breastmilk" },
+    { "code": "kidney_disease", "display": "End-stage kidney disease (on or about to be on dialysis)" },
+    { "code": "cirrhosis", "display": "End-stage liver disease (cirrhosis)" },
+    { "code": "eating_disorder", "display": "Current or prior eating disorder (anorexia/bulimia)" },
+    { "code": "suicidal_thoughts", "display": "Current suicidal thoughts and/or prior suicidal attempt" },
+    { "code": "cancer", "display": "Cancer (active diagnosis, active treatment, or in remission for less than 5 years)" },
+    { "code": "organ_transplant", "display": "History of organ transplant on anti-rejection medication" },
+    { "code": "gastrointestinal_condition", "display": "Severe gastrointestinal condition (gastroparesis, blockage, IBD)" },
+    { "code": "dependence", "display": "Currently untreated/unmonitored substance use disorder/dependence" },
+    { "code": "history_of_thyroid_cancer", "display": "Personal or family history of medullary thyroid cancer or MEN type 2" },
+    { "code": "diabetes2", "display": "Type 2 diabetes (on insulin)" },
+    { "code": "diabetes1", "display": "Type 1 diabetes" },
+    { "code": "diabetic_retinopathy", "display": "Diabetic retinopathy or blindness" },
+    { "code": "warfarin", "display": "Use of the blood thinner warfarin (Coumadin/Jantoven)" },
+    { "code": "pancreatitis", "display": "History of or current pancreatitis" },
+    { "code": "street_drugs", "display": "Use of street drugs or prescription medication without a valid prescription" }
+  ]
+}
+```
+
+<Warning>
+  **ANY answer other than "none"** will result in ineligibility for the program.
+</Warning>
+
+#### **Question 10: Prior Weight Loss Medications**
+```json
+{
+  "link_id": "prior_weight_loss_meds_use",
+  "text": "Are you currently taking or have recently taken medication(s) for weight loss?",
+  "type": "choice",
+  "required": true,
+  "answer_options": [
+    { "code": "glp_usage", "display": "Yes, I currently take or have recently taken a GLP-1 medication" },
+    { "code": "non_glp_usage", "display": "Yes, I currently take another (non-GLP-1) medication" },
+    { "code": "past_weight_loss_meds_usage", "display": "No, I took medication before but over 1 month ago" },
+    { "code": "no", "display": "No" }
+  ]
+}
+```
+
+#### **Question 11: Current Medications**
+```json
+{
+  "link_id": "any_medications",
+  "text": "Do you currently take any medications?",
+  "type": "choice",
+  "required": true,
+  "answer_options": [
+    { "code": "yes", "display": "Yes" },
+    { "code": "no", "display": "No" }
+  ]
+}
+```
+
+#### **Question 12: Medication Allergies**
+```json
+{
+  "link_id": "medication_allergies",
+  "text": "Do you have any medication allergies?",
+  "type": "choice",
+  "required": true,
+  "answer_options": [
+    { "code": "yes", "display": "Yes" },
+    { "code": "no", "display": "No" }
+  ]
+}
+```
+
+#### **Question 13: Allergy Details (CONDITIONAL)**
+```json
+{
+  "link_id": "allergy_medication_description",
+  "text": "Please provide details including name and reaction",
+  "type": "string",
+  "required": true,
+  "enabled_when": {
+    "conditions": [{
+      "question_link_id": "medication_allergies",
+      "operator": "=",
+      "answer": { "value_string": "yes" }
+    }],
+    "behavior": "all"
+  }
+}
+```
+
+<Info>
+  **This question only shows if** `medication_allergies === "yes"`
+</Info>
+
+#### **Question 14: Blood Pressure**
+```json
+{
+  "link_id": "blood_pressure_range",
+  "text": "What is your current or average blood pressure range?",
+  "type": "choice",
+  "required": true,
+  "answer_options": [
+    { "code": "normal", "display": "<120/80 (Normal)" },
+    { "code": "elevated", "display": "120-129/<80 (Elevated)" },
+    { "code": "high_stage1", "display": "130-139/80-89 (High Stage 1)" },
+    { "code": "high_stage2", "display": "≥140/90 (High Stage 2)" }
+  ]
+}
+```
+
+<Warning>
+  **Blood pressure ≥160/100** results in automatic exclusion.
+</Warning>
+
+---
+
+## Step 4: Submit Patient Responses
+
+After collecting answers, submit them to the API:
+
+```bash
+POST /questionnaire-responses
+```
+
+### Example Request Body
+
+<Info>
+  Use the `patient_id` from Step 0 (Create Patient)
+</Info>
+
+```json
+{
+  "patient_id": "pat_123",
+  "questionnaire_id": "q_mwl_intake_v1",
+  "program_id": "MWL",
+  "answers": {
+    "weight_goal": "lose_21-50_lbs",
+    "height_feet": 5,
+    "height_inches": 5,
+    "weight": 160,
+    "gender": "female",
+    "date_of_birth": "1990-01-01",
+    "state": "AL",
+    "main_reason": "health_risks",
+    "medical_exclusion_criteria": ["none"],
+    "prior_weight_loss_meds_use": "no",
+    "any_medications": "no",
+    "medication_allergies": "no",
+    "blood_pressure_range": "normal"
+  }
+}
+```
+
+---
+
+## Step 5: Interpret Eligibility Results
+
+### Example Response (Eligible Patient)
+
+```json
+{
+  "message": "Questionnaire response submitted successfully",
+  "data": {
+    "questionnaire_response": {
+      "id": "qr_abc123",
+      "patient_id": "pat_123",
+      "status": "completed",
+      
+      "risk_assessment": {
+        "eligible": true,
+        "risk_level": "low",
+        "requires_sync_consult": false,
+        "requires_clearance": false,
+        "exclusion_reason": null,
+        "next_step": "allow_async_order"
+      },
+      
+      "calculated_fields": {
+        "bmi": 26.62,
+        "age": 35,
+        "height": 65,
+        "comorbidity_required": true
+      }
+    }
+  }
+}
+```
+
+### Understanding `next_step` Values
+
+| Value | Meaning | Action |
+|-------|---------|--------|
+| `allow_async_order` | ✅ Patient is eligible | Proceed to create order |
+| `require_sync_consult` | ⚠️ Needs live provider consultation | Schedule consultation |
+| `require_clearance` | ⚠️ Needs PCP/specialist clearance | Request clearance document |
+| `exclude` | ❌ Not eligible for program | Show resources, cannot proceed |
+
+---
+
+## Step 6: List Products
+
+If eligible, retrieve available MWL products:
+
+```bash
+GET /products?program_id=MWL
+```
+
+**Response:**
+```json
+{
+  "message": "Products retrieved successfully",
+  "data": {
+    "products": [
+      {
+        "id": "sem_w12",
+        "name": "Semaglutide Injection",
+        "description": "12-week supply of injectable Semaglutide for weight management",
+        "program_id": "MWL",
+        "price": 399.00,
+        "currency": "USD",
+        "subscription": {
+          "is_recurring": true,
+          "interval_days": 84,
+          "interval_label": "every 12 weeks"
+        },
+        "active": true
+      },
+      {
+        "id": "osg_w04",
+        "name": "Semaglutide Oral",
+        "description": "4-week supply of oral Semaglutide for weight management",
+        "program_id": "MWL",
+        "price": 149.00,
+        "currency": "USD",
+        "subscription": {
+          "is_recurring": true,
+          "interval_days": 28,
+          "interval_label": "every 4 weeks"
+        },
+        "active": true
+      }
+    ]
+  }
+}
+```
+
+**16 total products available:**
+- Semaglutide Oral: `osg_w04`, `osg_w12`, `osg_w24`, `osg_w48`
+- Tirzepatide Oral: `otz_w04`, `otz_w12`, `otz_w24`, `otz_w48`
+- Semaglutide Injection: `sem_w04`, `sem_w12`, `sem_w24`, `sem_w48`
+- Tirzepatide Injection: `ter_w04`, `ter_w12`, `ter_w24`, `ter_w48`
+
+---
+
+## Step 7: Create Order
+
+Finally, create the order using the `patient_id` from Step 0:
+
+```bash
+POST /orders
+```
+
+**Request Body:**
+```json
+{
+  "patient_id": "pat_123",
+  "program_id": "MWL",
+  "product_id": "sem_w12",
+  "questionnaire_response_id": "qr_abc123"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Order created successfully",
+  "data": {
+    "order": {
+      "id": "ord_789",
+      "patient_id": "pat_123",
+      "program_id": "MWL",
+      "product_id": "sem_w12",
+      "status": "pending",
+      "total_amount": 39900,
+      "created_at": "2024-12-19T10:30:00Z"
+    }
+  }
+}
+```
+
+---
+
+## 📝 Complete Code Example
+
+Here's a complete integration example:
+
+```javascript
+// 0. Create patient
+const patientResponse = await fetch('/patients', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    first_name: 'Jane',
+    last_name: 'Doe',
+    email: 'jane.doe@example.com',
+    phone_number: '+1234567890',
+    date_of_birth: '1990-01-01'
+  })
+}).then(r => r.json());
+
+const patientId = patientResponse.data.patient.id;
+
+// 1. Get questionnaire structure
+const { questionnaires } = await fetch(
+  '/questionnaires?program_id=MWL&type=intake'
+).then(r => r.json());
+
+const questionnaire = questionnaires[0];
+
+// 2. Collect user answers
+const userAnswers = {
+  weight_goal: "lose_21-50_lbs",
+  height_feet: 5,
+  height_inches: 5,
+  weight: 160,
+  gender: "female",
+  date_of_birth: "1990-01-01",
+  state: "AL",
+  main_reason: "health_risks",
+  medical_exclusion_criteria: ["none"],
+  prior_weight_loss_meds_use: "no",
+  any_medications: "no",
+  medication_allergies: "no",
+  blood_pressure_range: "normal"
+};
+
+// 3. Submit questionnaire response
+const qrResponse = await fetch('/questionnaire-responses', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    patient_id: patientId,
+    questionnaire_id: questionnaire.id,
+    program_id: 'MWL',
+    answers: userAnswers
+  })
+}).then(r => r.json());
+
+const assessment = qrResponse.data.questionnaire_response.risk_assessment;
+
+// 4. Check eligibility
+if (assessment.next_step === 'allow_async_order') {
+  
+  // 5. Get products
+  const { products } = await fetch('/products?program_id=MWL')
+    .then(r => r.json());
+  
+  // 6. Create order
+  const order = await fetch('/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      patient_id: patientId,
+      program_id: 'MWL',
+      product_id: products[0].id,  // User selected product
+      questionnaire_response_id: qrResponse.data.questionnaire_response.id
+    })
+  }).then(r => r.json());
+  
+  console.log('Order created:', order.data.order.id);
+  
+} else if (assessment.next_step === 'exclude') {
+  console.error('Patient not eligible:', assessment.exclusion_reason);
+} else {
+  console.log('Additional steps required:', assessment.next_step);
+}
+```
+
+---
+
+## 🚨 Common Eligibility Issues
+
+### BMI Requirements
+
+```javascript
+if (prior_glp1_use === true) {
+  minimum_bmi = 22;
+} else if (has_weight_related_comorbidity) {
+  minimum_bmi = 25;
+} else {
+  minimum_bmi = 27;
+}
+```
+
+**Weight-related comorbidities include:**
+- Hypertension
+- Sleep apnea
+- Prediabetes
+- Type 2 diabetes (not on insulin)
+- High cholesterol
+- PCOS
+- Osteoarthritis
+
+### Automatic Exclusions
+
+Any "yes" answer to these excludes patient:
+- Pregnancy/breastfeeding
+- Severe kidney or liver disease
+- Eating disorder
+- Active cancer
+- Pancreatitis
+- Type 1 diabetes
+- MTC/MEN2 history
+- Blood pressure ≥160/100
+- Heart rate >110 bpm
+
+---
+
+## 🔄 Next Steps
+
+After successfully creating an order:
+
+1. **Track Order Status**: Use `GET /orders/{id}` to monitor fulfillment
+2. **Update Fulfillment**: Use `PATCH /orders/{id}` when shipped
+3. **Manage Subscription**: Handle renewals and cancellations
+
+---
+
+## 📞 Need Help?
+
+- Review the [API Reference](/api-reference/introduction)
+- Check [Data Standards](/api-reference/data-standards)
+- Contact support: support@openloophealth.com
+
+

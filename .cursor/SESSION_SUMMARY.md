@@ -101,7 +101,7 @@
   - `UploadResponse`, `FulfillmentUpdateInput`
 - Enhanced existing schemas:
   - `Order` - Added clinical_status, labs[], review, fulfillment, pricing, subscription
-  - `OrderInput` - Added program_id, payment_method_id, metadata
+  - `OrderInput` - Added program_id, metadata (payment_method_id was later removed as internal implementation detail)
 
 ### No Breaking Changes
 - All changes are **additive**
